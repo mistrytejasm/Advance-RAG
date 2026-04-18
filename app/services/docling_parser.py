@@ -1,7 +1,10 @@
 import os
 import gc
+import uuid
 import tempfile
+from datetime import datetime, timezone
 import torch
+import re
 from pypdf import PdfReader, PdfWriter
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorOptions, AcceleratorDevice
@@ -9,6 +12,22 @@ from docling.datamodel.base_models import InputFormat
 from docling.datamodel.document import TextItem, TableItem, PictureItem
 from app.utils.logger import logger
 from app.services.ocr_service import extract_text_from_image
+
+
+def clean_pua_chars(text: str) -> str:
+    """Replace common Private Use Area (PUA) Unicode characters mapping to PDF custom fonts."""
+    replacements = {
+        "\ue081": "(", "\ue082": ")", "\ue083": " ✅", "\ue084": "",
+        "\ue085": "'", "\ue086": '"', "\ue087": '"', "\ue088": "-",
+        "\ue089": "•", "\ue08a": "→", "\ue08b": "—", "\ue08c": "…",
+        "\ue08d": "'", "\ue08e": "'", "\ue08f": "–", "\ue090": "×",
+        "\ue091": "÷", "\ue092": ":",
+    }
+    for pua, replacement in replacements.items():
+        text = text.replace(pua, replacement)
+    text = re.sub(r'[\ue000-\uf8ff]', '', text)
+    return text
+
 
 # ──────────────────────────────────────────────────────────────────────
 # Hardware Strategy:
@@ -40,7 +59,31 @@ converter = DocumentConverter(
 )
 
 
-def _extract_chunks_from_result(result, document_id, page_offset):
+def _make_chunk(document_id, page_num, content, content_type, source_filename, element_type=None):
+    """Create a standardized chunk dictionary with full production metadata.
+
+    Every chunk gets:
+      - chunk_id:   unique UUID for vector DB indexing
+      - source:     original uploaded filename for traceability
+      - timestamp:  ISO 8601 processing time
+      - element_type: Docling's structural label (SectionHeaderItem, ListItem, etc.)
+    """
+    return {
+        "document_id": document_id,
+        "chunk_id": str(uuid.uuid4()),
+        "page": page_num,
+        "content": content,
+        "content_type": content_type,
+        "metadata": {
+            "element_type": element_type or content_type,
+            "source": source_filename,
+            "page_number": page_num,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    }
+
+
+def _extract_chunks_from_result(result, document_id, page_offset, source_filename):
     """Extract text, table, and image chunks from a Docling conversion result.
 
     Uses isinstance() checks against Docling's actual class hierarchy so that
@@ -51,6 +94,7 @@ def _extract_chunks_from_result(result, document_id, page_offset):
         result: Docling ConversionResult object
         document_id: UUID string for this document
         page_offset: Page number offset to map chunk pages back to the original PDF
+        source_filename: Original uploaded filename for metadata
 
     Returns:
         List of chunk dictionaries
@@ -72,13 +116,12 @@ def _extract_chunks_from_result(result, document_id, page_offset):
             else:
                 table_text = str(getattr(item, "data", ""))
 
-            if table_text.strip():
-                chunks.append({
-                    "document_id": document_id,
-                    "page": page_num,
-                    "content": table_text,
-                    "content_type": "table"
-                })
+            if table_text and table_text.strip():
+                table_text = clean_pua_chars(table_text)
+                chunks.append(_make_chunk(
+                    document_id, page_num, table_text,
+                    "table", source_filename, "TableItem"
+                ))
 
         # ── Image / Picture ──
         elif isinstance(item, PictureItem):
@@ -99,12 +142,10 @@ def _extract_chunks_from_result(result, document_id, page_offset):
                     os.remove(tmp_path)
 
                     if ocr_text and ocr_text.strip():
-                        chunks.append({
-                            "document_id": document_id,
-                            "page": page_num,
-                            "content": ocr_text,
-                            "content_type": "image"
-                        })
+                        chunks.append(_make_chunk(
+                            document_id, page_num, ocr_text,
+                            "image", source_filename, "PictureItem"
+                        ))
                 else:
                     logger.warning(f"Image block on page {page_num}: PIL image not extractable.")
             except Exception as e:
@@ -113,30 +154,26 @@ def _extract_chunks_from_result(result, document_id, page_offset):
         # ── Text (catches ALL subclasses: TitleItem, SectionHeaderItem, 
         #    ListItem, CodeItem, FormulaItem, FieldHeadingItem, FieldValueItem) ──
         elif isinstance(item, TextItem):
-            text = getattr(item, "text", "")
-            item_label = type(item).__name__  # e.g. "SectionHeaderItem", "ListItem"
-            if text.strip():
-                chunks.append({
-                    "document_id": document_id,
-                    "page": page_num,
-                    "content": text,
-                    "content_type": "text",
-                    "metadata": {"element_type": item_label}
-                })
+            text = clean_pua_chars(getattr(item, "text", ""))
+            item_label = type(item).__name__
+            
+            if text and text.strip():
+                chunks.append(_make_chunk(
+                    document_id, page_num, text,
+                    "text", source_filename, item_label
+                ))
 
         # ── Fallback: any unknown item type that has a .text attribute ──
         else:
-            text = getattr(item, "text", "")
+            text = clean_pua_chars(getattr(item, "text", ""))
+            item_label = type(item).__name__
+            
             if text and text.strip():
-                item_label = type(item).__name__
                 logger.info(f"Captured unknown item type '{item_label}' on page {page_num}")
-                chunks.append({
-                    "document_id": document_id,
-                    "page": page_num,
-                    "content": text,
-                    "content_type": "text",
-                    "metadata": {"element_type": item_label}
-                })
+                chunks.append(_make_chunk(
+                    document_id, page_num, text,
+                    "text", source_filename, item_label
+                ))
 
     return chunks
 
@@ -148,6 +185,11 @@ def parse_document(file_path, document_id):
     independently with Docling, and merges all extracted chunks.
     """
     logger.info("Parsing Document using Docling...")
+
+    # Extract original filename from the saved path (format: uuid_filename.pdf)
+    base_name = os.path.basename(file_path)
+    # Strip the leading document_id + underscore to recover original filename
+    source_filename = "_".join(base_name.split("_")[1:]) if "_" in base_name else base_name
 
     reader = PdfReader(file_path)
     total_pages = len(reader.pages)
@@ -171,7 +213,9 @@ def parse_document(file_path, document_id):
                 tmp_pdf_path = tmp_pdf.name
 
             result = converter.convert(tmp_pdf_path)
-            batch_chunks = _extract_chunks_from_result(result, document_id, page_offset=start)
+            batch_chunks = _extract_chunks_from_result(
+                result, document_id, page_offset=start, source_filename=source_filename
+            )
             all_chunks.extend(batch_chunks)
 
             logger.info(
