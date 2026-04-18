@@ -19,6 +19,10 @@ class ChunkRepository:
         cursor = self.collection.find({"document_id": document_id}, {"_id": 0})
         return list(cursor)
 
+    def get_chunk_by_id(self, chunk_id: str) -> dict | None:
+        """Retrieve a single chunk by its chunk_id (omits MongoDB _id)."""
+        return self.collection.find_one({"chunk_id": chunk_id}, {"_id": 0})
+
     def get_pending_chunks(self, document_id: str) -> list:
         """Return chunks where embedding_status != 'completed'."""
         cursor = self.collection.find(

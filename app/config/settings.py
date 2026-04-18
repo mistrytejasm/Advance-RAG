@@ -27,3 +27,9 @@ EMBEDDING_MODEL_NAME = "BAAI/bge-base-en-v1.5"
 EMBEDDING_DIMENSION = 768
 EMBEDDING_BATCH_SIZE = 64    # chunks sent to model at once
 PINECONE_BATCH_SIZE = 100    # vectors upserted to Pinecone at once
+
+# --- Phase 4: Retrieval Pipeline ---
+TOP_K = 20                    # vectors fetched from Pinecone per query
+RERANK_TOP_K = 5              # final results returned after reranking
+SIMILARITY_THRESHOLD = 0.6    # drop any vector result below this score
+RERANKER_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # CPU-safe, fast
