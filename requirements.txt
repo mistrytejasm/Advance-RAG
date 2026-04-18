@@ -13,3 +13,7 @@ python-dotenv
 
 pymongo
 tiktoken
+
+# Phase 3 — Embedding + Vector DB
+pinecone
+sentence-transformers
