@@ -11,4 +11,4 @@ app.include_router(documents_router)
 def root():
     return {
         "message": "Advance RAG Ingestion Service Running"
-    }
+    }
