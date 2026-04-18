@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+
+docling
+pypdf
+paddlepaddle
+paddleocr
+pillow
+
+pydantic
+python-dotenv

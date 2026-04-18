@@ -1,0 +1,81 @@
+# Advanced Production RAG System Outline & Implementation Plan
+
+This document outlines the phase-by-phase implementation plan structured as agile sprints to build an advanced, production-ready Retrieval-Augmented Generation (RAG) system. We will leverage **Groq** for high-speed LLM inference, **Pinecone** (free tier) for vector storage, and open-source Python libraries for various components along the way.
+
+## System Architecture
+
+```mermaid
+flowchart TD
+    A[User Uploads Document] --> B[OCR & Doc Processing]
+    B --> C[Chunking]
+    B --> D[Metadata Extraction]
+    C --> E[Embedding Generation]
+    D --> F[(Pinecone Vector DB)]
+    E --> F
+    
+    G[User Query] --> H{Query Processing}
+    H --> |Decomposition / Rewriting| I[Hybrid Retrieval]
+    I --> |Semantic| F
+    I --> |BM25 Keyword| F
+    F --> J[Re-ranking]
+    J --> K[Groq LLM Generation]
+    K --> L[Evaluation & Monitoring]
+```
+
+## Proposed Sprints
+
+---
+
+### Sprint 1: Document Processing Pipeline & OCR
+**Focus**: Injesting and extracting clean text from varied file formats.
+*   **Discussion**: Compare robust open-source tools like **Tesseract**, **EasyOCR**, and hybrid fast-parsers like **PyMuPDF**, **Unstructured**, or **Marker**.
+*   **Action**: Select the best stack based on your target file types, initialize a generic document loader pipeline Python module, and test it on a sample document.
+
+### Sprint 2: Text Chunking Strategies
+**Focus**: Segmenting text effectively to handle LLM context windows while maintaining semantic completeness.
+*   **Discussion**: Compare fixed-size, recursive character, and semantic (sentence/paragraph/structure-aware) chunking.
+*   **Action**: Implement a flexible chunking module. We'll examine the trade-offs and utilize libraries like `LangChain` text splitters for the heavy lifting.
+
+### Sprint 3: Embeddings, Metadata Strategy & Vector Database (Pinecone)
+**Focus**: Converting text to vectors and indexing them efficiently alongside structured metadata.
+*   **Discussion**: 
+    1.  What embedding model to use (e.g., `BAAI/bge-m3` or `all-MiniLM-L6-v2` via HuggingFace - completely free).
+    2.  Metadata schema design to improve retrieval accuracy.
+*   **Action**: Initialize Pinecone, script the embedding pipeline, append metadata (source, chunk ID, page number, semantic headers), and ingest our first set of chunks.
+
+### Sprint 4: Hybrid Retrieval Mechanisms
+**Focus**: Retrieving the most relevant chunks using combined search methodologies.
+*   **Discussion**: Compare Dense Retrieval (Semantic search) vs. Sparse Retrieval (BM25 Keyword search).
+*   **Action**: Implement Semantic Search via Pinecone, and Keyword Search via `rank_bm25` (or a supported vector DB sparse-dense approach). Combine them using Fusion mechanisms (e.g., Reciprocal Rank Fusion - RRF).
+
+### Sprint 5: Query Processing & Re-Ranking
+**Focus**: Optimizing the user's initial query before searching, and ranking the initially retrieved results.
+*   **Discussion**: Query rewriting, expansion, and multi-query translation using a Groq LLM. Fast re-ranking utilizing Cross-Encoder models (e.g., `BGE-Reranker`).
+*   **Action**: Construct the preprocessing logic that receives the user query, refines it, executes the hybrid search, and then cross-encodes the results for optimal ordering.
+
+### Sprint 6: RAG Generation & End-to-End Pipeline
+**Focus**: Integrating everything into an executable system with LLM synthesis.
+*   **Discussion**: System architecture best practices, structuring prompt templates for RAG.
+*   **Action**: Integrate a Groq LLM (e.g., `llama3-70b-8192` or `mixtral-8x7b-32768`) to synthesize final answers based on the retrieved top-K context. Tie Sprints 1-5 together in a unified `app.py`.
+
+### Sprint 7: Evaluation & Metrics
+**Focus**: Measuring system reliability—accuracy, hallucination rate, and relevance.
+*   **Discussion**: Overview of RAG-specific evaluation metrics: Context Precision, Context Recall, and Answer Faithfulness.
+*   **Action**: Write an automated evaluation script leveraging tools like **Ragas** or **TruLens** (open source versions) using LLM-as-a-judge approaches for validation.
+
+### Sprint 8: Monitoring & Observability
+**Focus**: Logging and tracking the app functioning in "production".
+*   **Discussion**: Why observability is critical; exploring free/open-source tools like **Arize Phoenix** or **LangSmith** (free tier).
+*   **Action**: Wrap the application with tracing to visually log LLM inputs, latency, and token usage.
+
+## Open Questions
+
+> [!IMPORTANT]
+> To ensure I set up Sprint 1 properly, I need to know:
+> 1.  What are the primary **types of documents** you expect to upload? (e.g., Scanned PDFs, Native/Text-based PDFs, Images, Word Documents, Excel sheets?) 
+> 2.  Will the documents contain complex formats like **tables** or **graphs** that we need to handle?
+
+## Verification Plan
+
+*   We will adopt a test-driven approach. At the end of every sprint, I will generate a small test script (e.g., `test_sprint#.py`) to validate the functionality.
+*   You will run this script locally and verify the logs/outputs before we proceed to the next sprint.
