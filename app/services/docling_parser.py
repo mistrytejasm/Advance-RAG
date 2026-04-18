@@ -6,6 +6,7 @@ from pypdf import PdfReader, PdfWriter
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorOptions, AcceleratorDevice
 from docling.datamodel.base_models import InputFormat
+from docling.datamodel.document import TextItem, TableItem, PictureItem
 from app.utils.logger import logger
 from app.services.ocr_service import extract_text_from_image
 
@@ -41,40 +42,30 @@ converter = DocumentConverter(
 
 def _extract_chunks_from_result(result, document_id, page_offset):
     """Extract text, table, and image chunks from a Docling conversion result.
-    
+
+    Uses isinstance() checks against Docling's actual class hierarchy so that
+    ALL subclasses of TextItem are captured (SectionHeaderItem, ListItem,
+    TitleItem, CodeItem, FormulaItem, etc.) — not just TextItem itself.
+
     Args:
         result: Docling ConversionResult object
         document_id: UUID string for this document
         page_offset: Page number offset to map chunk pages back to the original PDF
-    
+
     Returns:
         List of chunk dictionaries
     """
     chunks = []
 
     for item, level in result.document.iterate_items():
-        item_type = type(item).__name__.lower()
-
         # Map page number back to original document
         page_num = page_offset + 1  # default fallback
         if hasattr(item, "prov") and item.prov and len(item.prov) > 0:
             chunk_page = getattr(item.prov[0], "page_no", 1)
             page_num = page_offset + chunk_page
 
-        # ── Text ──
-        if "textitem" in item_type:
-            text = getattr(item, "text", "")
-            if text.strip():
-                chunks.append({
-                    "document_id": document_id,
-                    "page": page_num,
-                    "content": text,
-                    "content_type": "text",
-                    "metadata": {}
-                })
-
-        # ── Table ──
-        elif "tableitem" in item_type:
+        # ── Table (check FIRST — TableItem may also have .text) ──
+        if isinstance(item, TableItem):
             table_text = ""
             if hasattr(item, "export_to_markdown"):
                 table_text = item.export_to_markdown(result.document)
@@ -90,7 +81,7 @@ def _extract_chunks_from_result(result, document_id, page_offset):
                 })
 
         # ── Image / Picture ──
-        elif "pictureitem" in item_type or "image" in item_type:
+        elif isinstance(item, PictureItem):
             logger.info(f"Found image block on page {page_num}. Extracting via OCR...")
             try:
                 pil_img = None
@@ -119,12 +110,40 @@ def _extract_chunks_from_result(result, document_id, page_offset):
             except Exception as e:
                 logger.error(f"Failed to OCR image on page {page_num}: {e}")
 
+        # ── Text (catches ALL subclasses: TitleItem, SectionHeaderItem, 
+        #    ListItem, CodeItem, FormulaItem, FieldHeadingItem, FieldValueItem) ──
+        elif isinstance(item, TextItem):
+            text = getattr(item, "text", "")
+            item_label = type(item).__name__  # e.g. "SectionHeaderItem", "ListItem"
+            if text.strip():
+                chunks.append({
+                    "document_id": document_id,
+                    "page": page_num,
+                    "content": text,
+                    "content_type": "text",
+                    "metadata": {"element_type": item_label}
+                })
+
+        # ── Fallback: any unknown item type that has a .text attribute ──
+        else:
+            text = getattr(item, "text", "")
+            if text and text.strip():
+                item_label = type(item).__name__
+                logger.info(f"Captured unknown item type '{item_label}' on page {page_num}")
+                chunks.append({
+                    "document_id": document_id,
+                    "page": page_num,
+                    "content": text,
+                    "content_type": "text",
+                    "metadata": {"element_type": item_label}
+                })
+
     return chunks
 
 
 def parse_document(file_path, document_id):
     """Parse a PDF document in memory-safe page-range chunks.
-    
+
     Splits the PDF into mini-PDFs of CHUNK_SIZE pages, converts each
     independently with Docling, and merges all extracted chunks.
     """
