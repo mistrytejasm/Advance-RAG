@@ -33,3 +33,9 @@ TOP_K = 20                    # vectors fetched from Pinecone per query
 RERANK_TOP_K = 5              # final results returned after reranking
 SIMILARITY_THRESHOLD = 0.6    # drop any vector result below this score
 RERANKER_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # CPU-safe, fast
+
+# --- Phase 5: Hybrid Search (Semantic + BM25) ---
+HYBRID_INDEX_NAME = "hybrid_search_index"   # Atlas Search index name
+VECTOR_WEIGHT = 0.7           # weight for semantic (Pinecone) score
+BM25_WEIGHT = 0.3             # weight for keyword (BM25) score
+BM25_TOP_K = 20               # candidates to fetch from Atlas BM25 search

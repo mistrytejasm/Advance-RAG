@@ -1,4 +1,4 @@
-"""query.py — Phase 4 Retrieval API.
+"""query.py — Phase 5 Hybrid Retrieval API.
 
 Endpoints:
   POST /query
@@ -79,8 +79,10 @@ class ResultItem(BaseModel):
     section:      str = ""
     source:       str = ""
     content_type: str = "text"
-    vector_score: float
-    rerank_score: float
+    vector_score: float          # cosine similarity from Pinecone [0, 1]
+    bm25_score:   float          # BM25 term-frequency score (raw, unnormalized)
+    hybrid_score: float          # fused score = 0.7*v_norm + 0.3*bm25_norm
+    rerank_score: float          # cross-encoder relevance score
 
 
 class QueryResponse(BaseModel):
@@ -96,18 +98,20 @@ class QueryResponse(BaseModel):
 @router.post("/query", response_model=QueryResponse)
 def query_documents(request: QueryRequest):
     """
-    Execute the Phase 4 retrieval pipeline.
+    Execute the Phase 5 Hybrid Retrieval pipeline.
 
     Pipeline stages:
       1. Preprocess + embed query (BGE prefix, L2-normalisation)
-      2. Cosine vector search in Pinecone (namespace = document_id if provided)
-      3. Score threshold filtering + chunk_id deduplication
-      4. Cross-encoder reranking (CPU, ms-marco-MiniLM-L-6-v2)
-      5. Full content hydration from MongoDB
-      6. Query logging (latency, result count) to MongoDB
+      2a. Cosine vector search in Pinecone
+      2b. BM25 keyword search via MongoDB Atlas Search
+      3. Min-Max score normalization (both → [0, 1])
+      4. Hybrid score fusion: 0.7 * vector_norm + 0.3 * bm25_norm
+      5. Score threshold filtering + chunk_id deduplication
+      6. Cross-encoder reranking (CPU, ms-marco-MiniLM-L-6-v2)
+      7. Full content hydration from MongoDB + query logging
 
-    Returns ranked results with both vector_score and rerank_score for
-    full observability into retrieval quality.
+    Returns ranked results with vector_score, bm25_score, hybrid_score,
+    and rerank_score for full observability into retrieval quality.
     """
     try:
         result = run_retrieval_pipeline(
