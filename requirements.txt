@@ -20,3 +20,6 @@ sentence-transformers
 
 # Phase 4 — Retrieval (cross-encoder reranker)
 # cross-encoder/ms-marco-MiniLM-L-6-v2 is included in sentence-transformers
+
+# Phase 7 — Answer Generation (LLM)
+groq

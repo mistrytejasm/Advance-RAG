@@ -4,7 +4,7 @@ from app.api.documents import router as documents_router
 from app.api.embeddings import router as embeddings_router
 from app.api.query import router as query_router
 
-app = FastAPI(title="Advance RAG System", version="3.0.0")
+app = FastAPI(title="Advance RAG System", version="4.0.0")
 
 app.include_router(upload_router)
 app.include_router(documents_router)

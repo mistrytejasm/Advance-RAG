@@ -12,8 +12,13 @@ Priority order (most specific → most general):
   2. COMPARATIVE  — comparison signals (vs, difference between, compare)
   3. PROCEDURAL   — how-to + step-by-step signals
   4. NAVIGATIONAL — listing / location signals
-  5. FACTUAL      — definition / explanation signals
+  5. FACTUAL      — definition / explanation signals  ← catches broad wh-questions
   6. UNKNOWN      — fallback (no pattern matched)
+
+Why broad FACTUAL patterns (e.g. r"\bwhat\b") are SAFE in this chain:
+  NAVIGATIONAL is checked before FACTUAL, so:
+    "What sections cover X?"  → caught by NAVIGATIONAL (r"\bwhat (weeks?|sections?)\b")
+    "What decides the size?"  → NOT caught by NAVIGATIONAL → falls to FACTUAL → correct
 
 All patterns are stored as class-level constants so they are:
   - Inspectable and testable without instantiation
@@ -74,16 +79,29 @@ class QueryClassifier:
     ]
 
     FACTUAL_PATTERNS: list[str] = [
+        # Specific question forms (checked first within the group)
         r"\bwhat is\b",
         r"\bwhat are\b",
+        r"\bwhat was\b",
+        r"\bwhat were\b",
         r"\bwhy is\b",
         r"\bwhy does\b",
         r"\bwhy do\b",
+        r"\bwhy did\b",
+        r"\bwhat does .+ mean\b",
+        r"\btell me (about|what)\b",
         r"\bexplain\b",
         r"\bdefine\b",
         r"\bdescribe\b",
-        r"\btell me (about|what)\b",
-        r"\bwhat does .+ mean\b",
+        # Broader wh-question verbs — safe because NAVIGATIONAL is checked first
+        # Catches: "What decides...", "What determines...", "What causes...",
+        #          "What makes...", "What enables...", "What happens when..."
+        r"\bwhat (decides|determines|makes|causes|enables|prevents|happens)\b",
+        r"\bwhat (can|could|should|would|must|will)\b",
+        r"\bwhen (did|does|was|is|are|can|should)\b",
+        r"\bwhy\b",          # Catches "Why X?" — always factual intent
+        r"\bwhat\b",         # Broad fallback — catches "What X?" missed above
+                             # (safe: NAVIGATIONAL already handled list/section queries)
     ]
 
     # Ordered check groups: (patterns_list, QueryType)
