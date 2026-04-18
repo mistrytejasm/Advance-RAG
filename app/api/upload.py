@@ -37,7 +37,8 @@ async def upload_document(file: UploadFile = File(...)):
         output_path = save_processed_output(document_id, raw_elements)
         
         # Phase 2: Production Chunking Engine
-        semantic_chunks = chunker.chunk_document_elements(document_id, raw_elements)
+        source_type = file.filename.split(".")[-1].lower() if "." in file.filename else "unknown"
+        semantic_chunks = chunker.chunk_document_elements(document_id, raw_elements, source=source_type)
         
         # 3) Store Semantic Chunks into MongoDB
         for chunk in semantic_chunks:

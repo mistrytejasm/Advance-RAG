@@ -12,7 +12,7 @@ class Chunker:
     def __init__(self):
         self.tokenizer = SimpleTokenizer()
 
-    def chunk_document_elements(self, document_id: str, elements: list) -> list:
+    def chunk_document_elements(self, document_id: str, elements: list, source: str = "pdf") -> list:
         """
         Process the raw Docling JSON elements into semantic chunks.
         Applies Hybrid Structure-First Chunking (Group Headers, Fast-Pass Tables).
@@ -140,4 +140,10 @@ class Chunker:
         # Flush any remaining buffer at the end of document
         _flush_buffer()
         
+        total_chunks = len(final_chunks)
+        for idx, chunk in enumerate(final_chunks):
+            chunk["chunk_index"] = idx + 1
+            chunk["source"] = source
+            chunk["metadata"]["total_chunks"] = total_chunks
+            
         return final_chunks
