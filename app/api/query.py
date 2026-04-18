@@ -1,4 +1,4 @@
-"""query.py — Phase 5 Hybrid Retrieval API.
+"""query.py — Phase 5 + 6 Hybrid Retrieval API.
 
 Endpoints:
   POST /query
@@ -72,6 +72,19 @@ class QueryRequest(BaseModel):
     )
 
 
+class QueryUnderstandingInfo(BaseModel):
+    """Observability payload produced by the Phase 6 QU layer."""
+    original_query:    str
+    rewritten_query:   str
+    query_type:        str   # QueryType enum value
+    search_route:      str   # SearchRoute enum value
+    filters:           dict  # extracted metadata filters (may be {})
+    vector_weight:     float
+    bm25_weight:       float
+    rewrite_applied:   bool
+    expansion_applied: bool
+
+
 class ResultItem(BaseModel):
     chunk_id:     str
     content:      str
@@ -80,17 +93,18 @@ class ResultItem(BaseModel):
     source:       str = ""
     content_type: str = "text"
     vector_score: float          # cosine similarity from Pinecone [0, 1]
-    bm25_score:   float          # BM25 term-frequency score (raw, unnormalized)
-    hybrid_score: float          # fused score = 0.7*v_norm + 0.3*bm25_norm
+    bm25_score:   float          # raw BM25 term-frequency score
+    hybrid_score: float          # fused score = v_w*v_norm + b_w*bm25_norm
     rerank_score: float          # cross-encoder relevance score
 
 
 class QueryResponse(BaseModel):
-    query:         str
-    document_id:   str | None
-    latency_ms:    float
-    total_results: int
-    results:       list[ResultItem]
+    query:               str
+    document_id:         str | None
+    latency_ms:          float
+    total_results:       int
+    query_understanding: QueryUnderstandingInfo   # Phase 6 observability
+    results:             list[ResultItem]
 
 
 # ── Endpoint ──────────────────────────────────────────────────────────

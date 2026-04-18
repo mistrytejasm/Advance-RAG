@@ -39,3 +39,9 @@ HYBRID_INDEX_NAME = "hybrid_search_index"   # Atlas Search index name
 VECTOR_WEIGHT = 0.7           # weight for semantic (Pinecone) score
 BM25_WEIGHT = 0.3             # weight for keyword (BM25) score
 BM25_TOP_K = 20               # candidates to fetch from Atlas BM25 search
+
+# --- Phase 6: Query Understanding ---
+# Weights used when QueryRouter selects the BM25_PRIORITY route
+# (navigational queries: "which weeks cover X", "list all topics on Y")
+VECTOR_WEIGHT_BM25_PRIORITY = 0.4
+BM25_WEIGHT_BM25_PRIORITY = 0.6
