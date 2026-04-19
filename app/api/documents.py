@@ -3,7 +3,17 @@ import json
 from fastapi import APIRouter, HTTPException
 from app.config.settings import PROCESSED_DIR
 
-router = APIRouter()
+router = APIRouter(tags=["Document Management"])
+
+@router.get("/documents")
+async def list_documents():
+    """
+    List all processed documents available in the system.
+    """
+    from app.database.document_repository import DocumentRepository
+    doc_repo = DocumentRepository()
+    return {"documents": doc_repo.get_all_documents()}
+
 
 @router.get("/documents/{document_id}")
 async def get_document(document_id: str):
@@ -43,3 +53,54 @@ async def get_document_from_db(document_id: str):
         "total_chunks": len(chunks),
         "chunks": chunks
     }
+
+
+@router.delete("/documents/{document_id}")
+async def delete_document(document_id: str):
+    """
+    Delete a document completely from the system including:
+    - MongoDB (Document, Chunks, Logs)
+    - Pinecone (Vector embeddings)
+    - Local file storage
+    """
+    from app.database.document_repository import DocumentRepository
+    from app.database.chunk_repository import ChunkRepository
+    from app.database.log_repository import LogRepository
+    from app.database.pinecone_client import pinecone_client
+    
+    doc_repo = DocumentRepository()
+    chunk_repo = ChunkRepository()
+    log_repo = LogRepository()
+
+    # 1. Check if it exists
+    chunks = chunk_repo.get_chunks_by_document_id(document_id)
+    
+    # 2. Delete from Pinecone
+    chunk_ids = [c["chunk_id"] for c in chunks]
+    if chunk_ids:
+        # Pinecone max delete by IDs is usually 1000 at a time, we'll slice it if needed
+        # but for safety let's just delete them directly
+        for i in range(0, len(chunk_ids), 1000):
+            batch = chunk_ids[i:i+1000]
+            try:
+                pinecone_client.delete_vectors(ids=batch)
+            except Exception as e:
+                print(f"Failed to delete pinecone vectors for {document_id}: {e}")
+
+    # 3. Delete from MongoDB
+    chunk_repo.delete_chunks_by_document_id(document_id)
+    doc_deleted = doc_repo.delete_document(document_id)
+    # optionally delete logs, but keeping them might be useful for history. We'll leave logs.
+    
+    # 4. Delete local processed file
+    file_path = os.path.join(PROCESSED_DIR, f"{document_id}.json")
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
+
+    if not doc_deleted and not chunks:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    return {"message": f"Document {document_id} and its associated chunks deleted successfully"}

@@ -50,3 +50,8 @@ class ChunkRepository:
             {"chunk_id": chunk_id},
             {"$set": {"embedding_status": "failed"}},
         )
+
+    def delete_chunks_by_document_id(self, document_id: str):
+        """Delete all chunks for a specific document."""
+        result = self.collection.delete_many({"document_id": document_id})
+        return result.deleted_count

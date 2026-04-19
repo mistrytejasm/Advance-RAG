@@ -83,6 +83,11 @@ class PineconeClient:
         return self._index.fetch(ids=ids, namespace=namespace)
 
     # ------------------------------------------------------------------
+    def delete_vectors(self, ids: list, namespace: str = "") -> dict:
+        """Delete exact vectors by ID."""
+        return self._index.delete(ids=ids, namespace=namespace)
+
+    # ------------------------------------------------------------------
     def describe_index_stats(self) -> dict:
         """Return index-level statistics (vector count, namespaces, etc.)."""
         return self._index.describe_index_stats()

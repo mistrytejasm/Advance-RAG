@@ -10,7 +10,7 @@ from app.database.chunk_repository import ChunkRepository
 from app.database.log_repository import LogRepository
 from app.services.chunking.chunker import Chunker
 
-router = APIRouter()
+router = APIRouter(tags=["Document Management"])
 
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...)):

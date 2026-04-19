@@ -24,3 +24,11 @@ class DocumentRepository:
         }
         self.collection.insert_one(document)
         return document
+
+    def get_all_documents(self):
+        docs = self.collection.find({}, {"_id": 0})
+        return list(docs)
+
+    def delete_document(self, document_id: str):
+        result = self.collection.delete_one({"document_id": document_id})
+        return result.deleted_count > 0
