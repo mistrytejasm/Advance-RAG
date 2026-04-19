@@ -1,4 +1,4 @@
-"""answer_service.py — Phase 7 Orchestrator: Retrieval → Answer Generation.
+"""answer_service.py — Orchestrator: Retrieval → Answer Generation.
 
 This is the single entry point for the full RAG answer pipeline.
 It accepts the retrieval pipeline's output and drives all generation steps.
@@ -35,7 +35,7 @@ from app.config.settings import (
 )
 from app.utils.logger import logger
 
-# ── Phase 10: Monitoring ─────────────────────────────────────────────
+# ── Monitoring ─────────────────────────────────────────────
 from monitoring import log_request, compute_cost, classify_error, check_and_alert
 
 # LangSmith tracing — enabled when LANGCHAIN_TRACING_V2=true in .env.
@@ -207,7 +207,7 @@ def _build_response(
         error=error,
     )
 
-    # ── Phase 10: Write to monitoring request_logs + fire alerts ─────
+    # ── Write to monitoring request_logs + fire alerts ─────
     _monitor_request(
         query=query,
         retrieval_result=retrieval_result,
@@ -284,7 +284,7 @@ def _sigmoid_confidence(chunks: list[dict], scale: float = 3.0) -> float:
     return round(sigmoid, 4)
 
 
-# ── Phase 10: Monitoring helper ───────────────────────────────────────
+# ── Monitoring helper ───────────────────────────────────────
 
 def _monitor_request(
     query: str,

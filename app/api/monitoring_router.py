@@ -1,5 +1,5 @@
 """
-app/api/monitoring_router.py  — Phase 10 Monitoring Dashboard API.
+app/api/monitoring_router.py  — Monitoring Dashboard API.
 
 Endpoints:
     GET /health              — Live dependency health check (MongoDB, Pinecone, Groq)

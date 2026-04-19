@@ -1,4 +1,4 @@
-# Phase 9 -- RAG Evaluation Report
+# - RAG Evaluation Report
 
 **Generated:** 2026-04-19 07:02 UTC  
 **Samples evaluated:** 34  

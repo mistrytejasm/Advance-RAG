@@ -4,7 +4,7 @@ from app.services.file_service import save_file, save_processed_output
 from app.services.docling_parser import parse_document
 import time
 
-# --- Phase 2 Components ---
+# --- Components ---
 from app.database.document_repository import DocumentRepository
 from app.database.chunk_repository import ChunkRepository
 from app.database.log_repository import LogRepository
@@ -30,13 +30,13 @@ async def upload_document(file: UploadFile = File(...)):
     doc_repo.create_document(filename=file.filename, file_type="pdf")
 
     try:
-        # Phase 1: Ingest & Parse into structural elements
+        # Ingest & Parse into structural elements
         raw_elements = parse_document(file_path, document_id)
         
-        # Save Phase 1 raw JSON locally (for backup/debugging)
+        # Save raw JSON locally (for backup/debugging)
         output_path = save_processed_output(document_id, raw_elements)
         
-        # Phase 2: Production Chunking Engine
+        # Production Chunking Engine
         source_type = file.filename.split(".")[-1].lower() if "." in file.filename else "unknown"
         semantic_chunks = chunker.chunk_document_elements(document_id, raw_elements, source=source_type)
         

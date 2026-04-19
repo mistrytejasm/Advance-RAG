@@ -1,4 +1,4 @@
-"""Embeddings API Router — Phase 3.
+"""Embeddings API Router.
 
 Endpoints:
   POST /embed/{document_id}
@@ -17,7 +17,7 @@ from app.services.pipeline.embedding_pipeline import run_embedding_pipeline
 from app.services.vector_store.pinecone_client import pinecone_store
 from app.database.chunk_repository import ChunkRepository
 
-router = APIRouter(tags=["Phase 3 — Embeddings"])
+router = APIRouter(tags=["Embeddings"])
 
 
 # ── 1) Trigger Embedding ─────────────────────────────────────────────

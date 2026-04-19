@@ -1,4 +1,4 @@
-"""query.py — Phase 5 + 6 + 7 Hybrid Retrieval + Answer Generation API.
+"""query.py — Hybrid Retrieval + Answer Generation API.
 
 Endpoints:
   POST /query   — Hybrid retrieval only (returns ranked chunks)
@@ -58,7 +58,7 @@ class QueryRequest(BaseModel):
 # ── Response Models ───────────────────────────────────────────────────
 
 class QueryUnderstandingInfo(BaseModel):
-    """Observability payload from Phase 6 Query Understanding."""
+    """Observability payload from Query Understanding."""
     original_query:    str
     rewritten_query:   str
     query_type:        str
@@ -127,7 +127,7 @@ class AnswerResponse(BaseModel):
 @router.post("/query", response_model=QueryResponse)
 def query_documents(request: QueryRequest):
     """
-    Phase 5+6: Hybrid Retrieval + Query Understanding.
+    Hybrid Retrieval + Query Understanding.
     Returns semantically ranked results WITHOUT LLM generation.
     Use this to inspect retrieval quality independently.
     """
@@ -155,12 +155,12 @@ def query_documents(request: QueryRequest):
 @router.post("/answer", response_model=AnswerResponse)
 def answer_question(request: QueryRequest):
     """
-    Phase 7: Full RAG Pipeline — Hybrid Retrieval → LLM Answer Generation.
+    Full RAG Pipeline — Hybrid Retrieval → LLM Answer Generation.
 
     Pipeline stages:
-      Phase 6: Query Understanding (classify, rewrite, filter, route)
-      Phase 5: Hybrid Search (vector + BM25 → normalize → fuse → filter → rerank)
-      Phase 7: Answer Generation:
+      - Query Understanding (classify, rewrite, filter, route)
+      - Hybrid Search (vector + BM25 → normalize → fuse → filter → rerank)
+      - Answer Generation:
         1. Context building (token-budgeted, sorted by rerank_score)
         2. Prompt construction (grounding + citation instructions)
         3. Groq LLM call with exponential-backoff retry
@@ -172,7 +172,7 @@ def answer_question(request: QueryRequest):
     complete end-to-end observability.
     """
     try:
-        # Step 1: Run retrieval pipeline (Phases 5 + 6)
+        # Step 1: Run retrieval pipeline
         retrieval_result = run_retrieval_pipeline(
             query=request.query,
             document_id=request.document_id,
@@ -181,7 +181,7 @@ def answer_question(request: QueryRequest):
             min_score=request.min_score,
         )
 
-        # Step 2: Generate answer (Phase 7)
+        # Step 2: Generate answer
         answer_result = generate_answer(
             query=request.query,
             retrieval_result=retrieval_result,
