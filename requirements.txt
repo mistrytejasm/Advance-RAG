@@ -13,3 +13,22 @@ python-dotenv
 
 pymongo
 tiktoken
+
+# Embedding + Vector DB
+pinecone
+sentence-transformers
+
+# Retrieval (cross-encoder reranker)
+# cross-encoder/ms-marco-MiniLM-L-6-v2 is included in sentence-transformers
+
+# Answer Generation (LLM)
+groq
+
+# RAG Evaluation
+ragas>=0.2
+langchain-groq>=0.3
+datasets>=2.19
+pandas
+
+# Monitoring & Observability
+langsmith>=0.1
