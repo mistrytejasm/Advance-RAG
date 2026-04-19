@@ -29,6 +29,10 @@ class DocumentRepository:
         docs = self.collection.find({}, {"_id": 0})
         return list(docs)
 
+    def get_by_filename(self, filename: str):
+        """Return the first document matching this filename, or None."""
+        return self.collection.find_one({"filename": filename}, {"_id": 0})
+
     def delete_document(self, document_id: str):
         result = self.collection.delete_one({"document_id": document_id})
         return result.deleted_count > 0

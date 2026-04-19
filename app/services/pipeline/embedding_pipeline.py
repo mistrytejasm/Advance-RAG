@@ -131,7 +131,9 @@ def _flush_to_pinecone(
 ) -> None:
     """Upsert a buffer to Pinecone and mark each chunk as embedded."""
     try:
-        pinecone_store.upsert_vectors(records, namespace=document_id)
+        # Upsert to the global namespace so cross-document search works.
+        # document_id is stored in each vector's metadata for scoped filtering.
+        pinecone_store.upsert_vectors(records, namespace="")
         # ── Step 7a: Update MongoDB status ────────────────────────
         for rec in records:
             chunk_repo.mark_embedded(rec["id"])

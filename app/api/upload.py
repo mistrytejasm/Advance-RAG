@@ -26,6 +26,18 @@ async def upload_document(file: UploadFile = File(...)):
     document_id = file_info["file_id"]
     file_path = file_info["file_path"]
 
+    # Reject duplicates — prevent the same filename being indexed twice
+    existing = doc_repo.get_by_filename(file.filename)
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"A document named '{file.filename}' is already indexed "
+                f"(ID: {existing['document_id']}). "
+                "Delete it first before re-uploading."
+            ),
+        )
+
     # 1) Register Document in MongoDB — use the same ID as the file and chunks
     doc_repo.create_document(document_id=document_id, filename=file.filename, file_type="pdf")
 

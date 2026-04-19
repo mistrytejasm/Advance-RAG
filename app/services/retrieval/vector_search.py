@@ -41,16 +41,16 @@ class VectorSearch:
         Returns:
             List of match dicts: {chunk_id, score, metadata}
         """
-        namespace = document_id if document_id else ""
+        # Always search the global namespace — all vectors are stored there.
+        # When document_id is given, filter by metadata to scope results.
+        namespace = ""
+        if document_id:
+            doc_filter = {"document_id": {"$eq": document_id}}
+            if filter_metadata:
+                filter_metadata = {"$and": [doc_filter, filter_metadata]}
+            else:
+                filter_metadata = doc_filter
 
-        logger.info(
-            f"[VectorSearch] Searching namespace='{namespace}' top_k={top_k} "
-            f"filter={filter_metadata}"
-        )
-
-        # Build filter: merge caller's filter with document_id filter if both exist.
-        # Note: document_id is already scoped by namespace, so metadata filter
-        # is only needed for content_type / page / section filtering.
         pinecone_filter = filter_metadata or None
 
         def _do_search():
