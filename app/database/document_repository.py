@@ -11,12 +11,12 @@ class DocumentRepository:
 
     def create_document(
         self,
-        filename,
-        file_type
+        document_id: str,
+        filename: str,
+        file_type: str
     ):
         document = {
-
-            "document_id": str(uuid.uuid4()),
+            "document_id": document_id,
             "filename": filename,
             "file_type": file_type,
             "status": "processed",

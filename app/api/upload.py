@@ -26,8 +26,8 @@ async def upload_document(file: UploadFile = File(...)):
     document_id = file_info["file_id"]
     file_path = file_info["file_path"]
 
-    # 1) Register Document in MongoDB
-    doc_repo.create_document(filename=file.filename, file_type="pdf")
+    # 1) Register Document in MongoDB — use the same ID as the file and chunks
+    doc_repo.create_document(document_id=document_id, filename=file.filename, file_type="pdf")
 
     try:
         # Ingest & Parse into structural elements
