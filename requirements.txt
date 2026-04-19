@@ -22,4 +22,10 @@ sentence-transformers
 # cross-encoder/ms-marco-MiniLM-L-6-v2 is included in sentence-transformers
 
 # Phase 7 — Answer Generation (LLM)
-groq
+groq
+
+# Phase 9 -- RAG Evaluation
+ragas>=0.2
+langchain-groq>=0.3
+datasets>=2.19
+pandas

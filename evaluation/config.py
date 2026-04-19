@@ -28,7 +28,7 @@ DATABASE_NAME           = os.getenv("DATABASE_NAME",                  "rag_db")
 CHUNKS_COLLECTION       = os.getenv("CHUNKS_COLLECTION",              "chunks")
 
 # ── Output ────────────────────────────────────────────────────────────
-EVAL_DATASET_PATH       = os.getenv("EVAL_DATASET_PATH", "data/eval_dataset.json")
+EVAL_DATASET_PATH       = os.getenv("EVAL_DATASET_PATH", "evaluation_data/eval_dataset.json")
 
 # ── Pipeline defaults ─────────────────────────────────────────────────
 DEFAULT_BATCH_SIZE      = int(os.getenv("EVAL_BATCH_SIZE",            "10"))

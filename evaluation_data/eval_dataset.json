@@ -1,0 +1,802 @@
+[
+  {
+    "query": "Why is blinded pairwise judging used when evaluating fine‑tuned small models?",
+    "ground_truth": "It provides a realistic upper bound on quality by comparing against frontier models, and the blind comparison shows whether the fine‑tuned small model is actually good enough for the task rather than just appearing better than the baseline.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "07e46037-91c8-4ef5-964d-0dbf351ed91a",
+    "relevant_chunk_ids": [
+      "07e46037-91c8-4ef5-964d-0dbf351ed91a"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 21,
+    "section": "7) Comparison with frontier models",
+    "generated_at": "2026-04-19T05:33:21.188250+00:00"
+  },
+  {
+    "query": "Why is a 1.1B model recommended for training on a system with only 4GB VRAM?",
+    "ground_truth": "A 1.1B model is recommended because 4 GB of VRAM is very limited, models larger than about 1.5 B parameters can crash even with QLoRA, and the 1.1 B model provides stable training and faster iteration.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "09a3644f-7b9f-4dde-bf19-e0338358525a",
+    "relevant_chunk_ids": [
+      "09a3644f-7b9f-4dde-bf19-e0338358525a"
+    ],
+    "query_type": "explanation",
+    "difficulty": "medium",
+    "answer_type": "multi_hop",
+    "source": "synthetic",
+    "page": 37,
+    "section": "Because:",
+    "generated_at": "2026-04-19T05:33:22.165857+00:00"
+  },
+  {
+    "query": "What topics are covered in Week 9: LLM Fundamentals?",
+    "ground_truth": "Study GPT, BERT, LLaMA architectures; Learn tokenization, embeddings; Prompt engineering basics; Fine-tuning vs instruction tuning.",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "0ca24ec1-4581-4e40-b992-f73e4d1507d3",
+    "relevant_chunk_ids": [
+      "0ca24ec1-4581-4e40-b992-f73e4d1507d3"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 12,
+    "section": "Week 9: LLM Fundamentals  ✅8 ✅6",
+    "generated_at": "2026-04-19T05:33:24.355359+00:00"
+  },
+  {
+    "query": "Why is establishing a baseline important before fine‑tuning an adapter?",
+    "ground_truth": "You need a baseline so you can see the real improvement after fine‑tuning. Without this, it is hard to know whether your adapter actually helped.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "0f3a05a8-51c6-4d78-af94-0c0bdf6c9e31",
+    "relevant_chunk_ids": [
+      "0f3a05a8-51c6-4d78-af94-0c0bdf6c9e31"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 28,
+    "section": "Why this step matters",
+    "generated_at": "2026-04-19T05:33:24.923277+00:00"
+  },
+  {
+    "query": "What does the Hit Rate metric measure?",
+    "ground_truth": "Hit Rate measures the percentage of queries where at least one relevant document was retrieved in the top-K.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "1048e5a3-bfc7-4c18-aa79-b165cb996b98",
+    "relevant_chunk_ids": [
+      "1048e5a3-bfc7-4c18-aa79-b165cb996b98"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 14,
+    "section": "Retrieval Quality Metrics",
+    "generated_at": "2026-04-19T05:33:26.340248+00:00"
+  },
+  {
+    "query": "What MLOps tool categories are listed and give an example of a tool for each category?",
+    "ground_truth": "The categories and examples are: Experiment Tracking – MLflow; Feature Stores – Feast; Orchestration – Airflow; CI/CD for ML – GitHub Actions.",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "115a1cac-2b2f-4c58-bcf5-418963d9bd0e",
+    "relevant_chunk_ids": [
+      "115a1cac-2b2f-4c58-bcf5-418963d9bd0e"
+    ],
+    "query_type": "list",
+    "difficulty": "medium",
+    "answer_type": "multi_hop",
+    "source": "synthetic",
+    "page": 8,
+    "section": "C. MLOps Tools  ✅9 ✅6",
+    "generated_at": "2026-04-19T05:33:28.209231+00:00"
+  },
+  {
+    "query": "What does setting assistant_only_loss=True do in training?",
+    "ground_truth": "It focuses the loss on the assistant answer rather than the whole conversation.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "115f4f99-62de-4569-932c-fed2db38cc35",
+    "relevant_chunk_ids": [
+      "115f4f99-62de-4569-932c-fed2db38cc35"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 30,
+    "section": "Why each training choice is there",
+    "generated_at": "2026-04-19T05:33:29.335096+00:00"
+  },
+  {
+    "query": "Why are the topics in Part 5 considered must‑know for AI engineers with 3‑4 years of experience?",
+    "ground_truth": "Because they are repeatedly asked about in senior AI engineer interviews and cover areas such as large language models, computer vision, and production systems.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "115fcc7c-4e7e-4f18-be75-fa42beaaf36d",
+    "relevant_chunk_ids": [
+      "115fcc7c-4e7e-4f18-be75-fa42beaaf36d"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "abstractive",
+    "source": "synthetic",
+    "page": 39,
+    "section": "PART 5: MUST-KNOW TOPICS FOR 3-4 YOE AI ENGINEERS",
+    "generated_at": "2026-04-19T05:33:30.276092+00:00"
+  },
+  {
+    "query": "What prompting techniques are mentioned in the LLM Inference & Optimization section?",
+    "ground_truth": "Zero-Shot Prompting, Few-Shot Prompting, Chain-of-Thought (CoT) Prompting, Tree-of-Thought (ToT), ReAct (Reasoning + Acting), Prompt Templates, System Prompts vs User Prompts",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "14160653-ce8b-4624-9baa-3ae708a2661c",
+    "relevant_chunk_ids": [
+      "14160653-ce8b-4624-9baa-3ae708a2661c"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 5,
+    "section": "LLM Inference & Optimization  ✅8",
+    "generated_at": "2026-04-19T05:33:37.359228+00:00"
+  },
+  {
+    "query": "What factors determine the number of parameters in transformer models?",
+    "ground_truth": "Parameters depend on the number of layers, the hidden size, and the number of attention heads; a larger architecture yields more parameters.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "14c34bb9-330f-4d6e-8bbf-8d6825c27647",
+    "relevant_chunk_ids": [
+      "14c34bb9-330f-4d6e-8bbf-8d6825c27647"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 5,
+    "section": "Step 1: Parameters come from model structure",
+    "generated_at": "2026-04-19T05:33:46.643758+00:00"
+  },
+  {
+    "query": "What prompt is used in the code example?",
+    "ground_truth": "The prompt is \"I want to reset my password. What should I do?\"",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "15afeb0c-71ca-477b-b6e6-2f05ff1bcf67",
+    "relevant_chunk_ids": [
+      "15afeb0c-71ca-477b-b6e6-2f05ff1bcf67"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 28,
+    "section": "5) Run the baseline model before fine-tuning",
+    "generated_at": "2026-04-19T05:33:49.638626+00:00"
+  },
+  {
+    "query": "What token-to-parameter ratio does the Chinchilla Scaling Law typically recommend?",
+    "ground_truth": "about 20 tokens per parameter",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "1677f487-e62d-45ec-abfa-9309652513f2",
+    "relevant_chunk_ids": [
+      "1677f487-e62d-45ec-abfa-9309652513f2"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 11,
+    "section": "🔹 Interview-ready answer",
+    "generated_at": "2026-04-19T05:33:57.468558+00:00"
+  },
+  {
+    "query": "What is a parameter in a neural network?",
+    "ground_truth": "A parameter is basically a weight or number inside the neural network.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "16ad9d79-f4b3-40f3-88cf-336cbe54b31e",
+    "relevant_chunk_ids": [
+      "16ad9d79-f4b3-40f3-88cf-336cbe54b31e"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 1,
+    "section": "Think of it like this:",
+    "generated_at": "2026-04-19T05:34:00.644680+00:00"
+  },
+  {
+    "query": "What analogy does the document suggest for describing a model and its parameters?",
+    "ground_truth": "Think of the model like a brain with millions or billions of tiny knobs. Each knob is a parameter. During training, the model adjusts these knobs to learn patterns in language.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "17681d81-780a-48c8-88ee-b3ebd498f809",
+    "relevant_chunk_ids": [
+      "17681d81-780a-48c8-88ee-b3ebd498f809"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 2,
+    "section": "🔹 Step 2: Use a relatable analogy (very important)",
+    "generated_at": "2026-04-19T05:34:09.565996+00:00"
+  },
+  {
+    "query": "What does the temperature τ control in the CLIP loss?",
+    "ground_truth": "The temperature τ controls the sharpness of the similarity distribution in the CLIP loss.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "17e2bd25-5bc0-49fd-9409-34d922d0ca7f",
+    "relevant_chunk_ids": [
+      "17e2bd25-5bc0-49fd-9409-34d922d0ca7f"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 34,
+    "section": "CLIP Training -Foundation of Most VLMs",
+    "generated_at": "2026-04-19T05:34:14.105705+00:00"
+  },
+  {
+    "query": "What techniques are mentioned for model monitoring?",
+    "ground_truth": "Data Drift Detection, Model Drift Detection, Performance Monitoring, A/B Testing, Shadow Deployment, Canary Deployment",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "180dcbed-6c1d-482e-a9a8-203d682db761",
+    "relevant_chunk_ids": [
+      "180dcbed-6c1d-482e-a9a8-203d682db761"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 8,
+    "section": "B. Model Monitoring  ✅9",
+    "generated_at": "2026-04-19T05:34:16.601743+00:00"
+  },
+  {
+    "query": "What is the rule for combining data size and model size?",
+    "ground_truth": "Small data + big model = overfitting; Big data + big model = powerful model.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "18826a77-4124-4571-8b81-668d35b88d56",
+    "relevant_chunk_ids": [
+      "18826a77-4124-4571-8b81-668d35b88d56"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 6,
+    "section": "2. Data available",
+    "generated_at": "2026-04-19T05:34:27.612491+00:00"
+  },
+  {
+    "query": "What scoring scale is used to evaluate answers in the practical workflow?",
+    "ground_truth": "Score each answer from 1 to 4: 1 = wrong, 2 = partly correct, 3 = good, 4 = excellent.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "1977938f-2992-40b3-9a64-18466f07cc5f",
+    "relevant_chunk_ids": [
+      "1977938f-2992-40b3-9a64-18466f07cc5f"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 33,
+    "section": "Practical workflow",
+    "generated_at": "2026-04-19T05:34:31.233320+00:00"
+  },
+  {
+    "query": "What aspects do parameters control?",
+    "ground_truth": "Parameters control which words are likely to come next, how grammar is handled, understanding of context and meaning, and relationships between words and concepts.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "19b60295-6544-4b6f-82e4-d9352071b99a",
+    "relevant_chunk_ids": [
+      "19b60295-6544-4b6f-82e4-d9352071b99a"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 1,
+    "section": "What do parameters do?",
+    "generated_at": "2026-04-19T05:34:33.938784+00:00"
+  },
+  {
+    "query": "What actions are recommended not to do according to the guidelines?",
+    "ground_truth": "- Don't train full dataset initially\n- Don't increase sequence length\n- Don't use 7B models\n- Don't increase batch size",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "19eaef16-ab57-46a0-a196-bcdd26c2ce8d",
+    "relevant_chunk_ids": [
+      "19eaef16-ab57-46a0-a196-bcdd26c2ce8d"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 39,
+    "section": "🔹 What you should NOT do",
+    "generated_at": "2026-04-19T05:34:36.719243+00:00"
+  },
+  {
+    "query": "What is the purpose of the KV cache in language model inference?",
+    "ground_truth": "The KV cache stores computed attention keys and values for previous tokens so they don’t need to be recomputed for each new generated token, preventing the inference cost from growing quadratically with sequence length.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "19fb7c2d-88a9-4aa0-b53b-20925ad9afbb",
+    "relevant_chunk_ids": [
+      "19fb7c2d-88a9-4aa0-b53b-20925ad9afbb"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 2,
+    "section": "B. Memory Management: KV Cache & PagedAttention",
+    "generated_at": "2026-04-19T05:34:40.370263+00:00"
+  },
+  {
+    "query": "What regression algorithms are listed in the Supervised Learning - Regression section?",
+    "ground_truth": "Linear Regression (OLS, Ridge, Lasso, ElasticNet), Polynomial Regression, Support Vector Regression (SVR), Decision Tree Regression, Random Forest Regression, Gradient Boosting (XGBoost, LightGBM, CatBoost)",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "1a877d8d-f435-4c7c-b993-4700eafefd37",
+    "relevant_chunk_ids": [
+      "1a877d8d-f435-4c7c-b993-4700eafefd37"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 1,
+    "section": "Supervised Learning - Regression  ✅3",
+    "generated_at": "2026-04-19T05:34:42.996634+00:00"
+  },
+  {
+    "query": "Why is offloading important when the GPU has only 4 GB of VRAM?",
+    "ground_truth": "Because the GPU only has 4 GB of VRAM, offloading moves some model weights to CPU RAM, which prevents crashes.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "1d343b40-a224-4ac2-b920-c2023b063808",
+    "relevant_chunk_ids": [
+      "1d343b40-a224-4ac2-b920-c2023b063808"
+    ],
+    "query_type": "explanation",
+    "difficulty": "medium",
+    "answer_type": "abstractive",
+    "source": "synthetic",
+    "page": 43,
+    "section": "✅ Why this matters",
+    "generated_at": "2026-04-19T05:34:49.607855+00:00"
+  },
+  {
+    "query": "What three layers should be used to evaluate a fine-tuned model according to the document?",
+    "ground_truth": "The evaluation should use (1) validation loss during training, (2) automatic text metrics on held-out prompts, and (3) human review or LLM judging for open-ended answers.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "1e57999b-731e-48a1-9934-7b5aa5941b99",
+    "relevant_chunk_ids": [
+      "1e57999b-731e-48a1-9934-7b5aa5941b99"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 31,
+    "section": "8) Evaluate the fine-tuned model",
+    "generated_at": "2026-04-19T05:34:53.693172+00:00"
+  },
+  {
+    "query": "What method is recommended for measuring the hallucination rate of a model?",
+    "ground_truth": "Test on questions with verifiable answers; count confident wrong answers; use TruthfulQA subset",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "1f933010-80de-4dd1-9025-4aea39268f19",
+    "relevant_chunk_ids": [
+      "1f933010-80de-4dd1-9025-4aea39268f19"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 9,
+    "section": "C. Custom Evaluation Framework for Production",
+    "generated_at": "2026-04-19T05:34:59.707594+00:00"
+  },
+  {
+    "query": "Why is gradient checkpointing used in training?",
+    "ground_truth": "It trades compute for memory, allowing you to fit larger batch sizes or models.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "1fa36f5b-0841-4fe4-b2eb-b00736784a2e",
+    "relevant_chunk_ids": [
+      "1fa36f5b-0841-4fe4-b2eb-b00736784a2e"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 41,
+    "section": "TejasH MistrY -AI Engineer",
+    "generated_at": "2026-04-19T05:35:03.491992+00:00"
+  },
+  {
+    "query": "What topics are covered in the Statistical Foundations section?",
+    "ground_truth": "The section covers probability distributions (Normal, Binomial, Poisson), hypothesis testing (T-test, Chi-square, ANOVA), p-values and confidence intervals, Bayes' Theorem, maximum likelihood estimation (MLE), the central limit theorem, and correlation vs causation.",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "2049c39e-0579-4777-803f-7da05dbdf973",
+    "relevant_chunk_ids": [
+      "2049c39e-0579-4777-803f-7da05dbdf973"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 3,
+    "section": "C. Statistical Foundations  ✅4 ✅6",
+    "generated_at": "2026-04-19T05:35:06.420026+00:00"
+  },
+  {
+    "query": "What ensemble methods are listed in the document chunk?",
+    "ground_truth": "Bagging, Boosting (AdaBoost, Gradient Boosting, XGBoost), Stacking, Voting Classifiers",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "210a066f-6aca-4f47-9977-95f2eb2434fb",
+    "relevant_chunk_ids": [
+      "210a066f-6aca-4f47-9977-95f2eb2434fb"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 2,
+    "section": "Ensemble Methods  ✅3",
+    "generated_at": "2026-04-19T05:35:10.183233+00:00"
+  },
+  {
+    "query": "What activity is scheduled for the afternoon and how long does it last?",
+    "ground_truth": "Afternoon (2-5 PM) – ML/DL/GenAI Learning – 3 hours",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "23382290-0c1b-4e41-82f8-731a3013585b",
+    "relevant_chunk_ids": [
+      "23382290-0c1b-4e41-82f8-731a3013585b"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 13,
+    "section": "DAILY STUDY SCHEDULE (Weeks 2-12)",
+    "generated_at": "2026-04-19T05:35:21.423571+00:00"
+  },
+  {
+    "query": "Where are the parameters stored in practice according to the pro tip?",
+    "ground_truth": "In practice, these parameters are stored as weights and biases in neural network layers, especially in transformer architectures.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "23620050-c826-4ced-b673-30f64f6545e0",
+    "relevant_chunk_ids": [
+      "23620050-c826-4ced-b673-30f64f6545e0"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 3,
+    "section": "🔹 Pro tip (this will make you stand out)",
+    "generated_at": "2026-04-19T05:35:25.492232+00:00"
+  },
+  {
+    "query": "Why does Step 2 prepare the model for k-bit training?",
+    "ground_truth": "It adapts the model so only adapter weights are trained while the base weights stay frozen.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "24d7dcf9-7466-4152-8e0c-538338dbda72",
+    "relevant_chunk_ids": [
+      "24d7dcf9-7466-4152-8e0c-538338dbda72"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 18,
+    "section": "Step 2: Prepare the model for k-bit training",
+    "generated_at": "2026-04-19T05:35:31.304151+00:00"
+  },
+  {
+    "query": "How are parameters initially set according to Step 1?",
+    "ground_truth": "Initially they are set to random numbers.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "2594c6da-05f6-4620-85c6-03a9076cad03",
+    "relevant_chunk_ids": [
+      "2594c6da-05f6-4620-85c6-03a9076cad03"
+    ],
+    "query_type": "procedural",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 4,
+    "section": "Step 1: You don't manually set parameter values",
+    "generated_at": "2026-04-19T05:35:34.074125+00:00"
+  },
+  {
+    "query": "What are the next steps listed after the project works?",
+    "ground_truth": "- Deploy with FastAPI\n- Create UI (chat interface)\n- Make this a resume-level project",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "266a88cd-7be5-4161-9046-222ecf804b7c",
+    "relevant_chunk_ids": [
+      "266a88cd-7be5-4161-9046-222ecf804b7c"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 45,
+    "section": "Next step",
+    "generated_at": "2026-04-19T05:35:36.566908+00:00"
+  },
+  {
+    "query": "What are the specifications of the Qwen/Qwen2.5-1.5B-Instruct model?",
+    "ground_truth": "It is a 1.54 billion‑parameter causal language model with 28 layers and a 32 k token context window.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "270f67d3-094c-440e-9d0b-0421ae68913a",
+    "relevant_chunk_ids": [
+      "270f67d3-094c-440e-9d0b-0421ae68913a"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 23,
+    "section": "'AI Customer Support Copilot'",
+    "generated_at": "2026-04-19T05:35:41.707847+00:00"
+  },
+  {
+    "query": "How does the model learn its parameters?",
+    "ground_truth": "The model reads a huge amount of text data and keeps adjusting these parameters again and again until it starts giving correct answers.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "27163ec0-ede0-4518-8448-9b1705595d11",
+    "relevant_chunk_ids": [
+      "27163ec0-ede0-4518-8448-9b1705595d11"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 3,
+    "section": "🔹 Step 4: Explain how they are learned",
+    "generated_at": "2026-04-19T05:35:44.517924+00:00"
+  },
+  {
+    "query": "What are the key design decisions for a real-time image classification API?",
+    "ground_truth": "Model quantization, ONNX+TensorRT, horizontal scaling, latency budget",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "271a8599-39a4-47c7-b7e8-03f85e86b6ca",
+    "relevant_chunk_ids": [
+      "271a8599-39a4-47c7-b7e8-03f85e86b6ca"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 39,
+    "section": "Common System Design Problems",
+    "generated_at": "2026-04-19T05:35:49.038613+00:00"
+  },
+  {
+    "query": "What does Step 1 advise about the dataset size before training?",
+    "ground_truth": "Step 1 advises not to train on the full dataset initially (approximately 26 k samples) and to modify the dataset size.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "2924ade1-36c4-4b70-9d41-257d0d229df8",
+    "relevant_chunk_ids": [
+      "2924ade1-36c4-4b70-9d41-257d0d229df8"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 41,
+    "section": "🔹 Step 1: Modify dataset size (VERY IMPORTANT)",
+    "generated_at": "2026-04-19T05:35:55.238045+00:00"
+  },
+  {
+    "query": "What components are included in the total cost estimation model?",
+    "ground_truth": "Input tokens cost, output tokens cost, infrastructure cost, and fine‑tuning cost amortized.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "29ff8559-7bd4-4888-b509-75a3529a2b03",
+    "relevant_chunk_ids": [
+      "29ff8559-7bd4-4888-b509-75a3529a2b03"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 6,
+    "section": "Cost Estimation Model",
+    "generated_at": "2026-04-19T05:36:09.633278+00:00"
+  },
+  {
+    "query": "What is the content of question Q5 in the interview list?",
+    "ground_truth": "What is the difference between pix2pix and CycleGAN? When would you use each?",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "2bbd1b86-91e7-49a5-b9ba-9e01500942bd",
+    "relevant_chunk_ids": [
+      "2bbd1b86-91e7-49a5-b9ba-9e01500942bd"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 25,
+    "section": "INTERVIEW QUESTIONS",
+    "generated_at": "2026-04-19T05:36:18.918313+00:00"
+  },
+  {
+    "query": "What are the main features of VQGAN?",
+    "ground_truth": "Discrete latent codes; combines CNN + transformer",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "2be07b89-4131-407b-8d9a-fabaeff96f72",
+    "relevant_chunk_ids": [
+      "2be07b89-4131-407b-8d9a-fabaeff96f72"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 25,
+    "section": "TejasH MistrY -AI Engineer",
+    "generated_at": "2026-04-19T05:36:22.059481+00:00"
+  },
+  {
+    "query": "What are the agent types mentioned in the \"Agent Types\" section?",
+    "ground_truth": "ReAct Agents (Reasoning + Acting), Plan-and-Execute Agents, Reflexion Agents, and Multi-Agent Systems.",
+    "document_id": "fbde3a57-b831-41ee-909d-f4901953097d",
+    "chunk_id": "2caa964f-9e72-4a9e-8725-24926bf5a4de",
+    "relevant_chunk_ids": [
+      "2caa964f-9e72-4a9e-8725-24926bf5a4de"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 7,
+    "section": "Agent Types  ✅16 ✅14",
+    "generated_at": "2026-04-19T05:36:25.684821+00:00"
+  },
+  {
+    "query": "What are parameters in an LLM?",
+    "ground_truth": "In an LLM (Large Language Model), parameters are the internal numerical values the model learns during training.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "2d14249d-3f0f-4355-bfaf-c016eb70e072",
+    "relevant_chunk_ids": [
+      "2d14249d-3f0f-4355-bfaf-c016eb70e072"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 1,
+    "section": "LLM Fine-Tuning",
+    "generated_at": "2026-04-19T05:36:28.280372+00:00"
+  },
+  {
+    "query": "What are parameters in an AI model?",
+    "ground_truth": "Parameters are the numbers inside an AI model that it learns during training to make predictions.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "2eced365-e959-436c-93ad-aa89fd281ced",
+    "relevant_chunk_ids": [
+      "2eced365-e959-436c-93ad-aa89fd281ced"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 2,
+    "section": "🔹 Step 1: Start with a simple definition",
+    "generated_at": "2026-04-19T05:36:47.903740+00:00"
+  },
+  {
+    "query": "How many examples are sufficient for most systems when creating an evaluation dataset?",
+    "ground_truth": "100-500 examples is sufficient for most systems.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "3277b330-b585-45a1-a45b-7acc6449c261",
+    "relevant_chunk_ids": [
+      "3277b330-b585-45a1-a45b-7acc6449c261"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 15,
+    "section": "Step 1: Set Up Evaluation Dataset",
+    "generated_at": "2026-04-19T05:36:51.995086+00:00"
+  },
+  {
+    "query": "What are the key elements of the evaluation strategy for a fine‑tuned model as described in the document?",
+    "ground_truth": "The evaluation strategy includes: (1) how to evaluate the fine‑tuned model, (2) which datasets to use for evaluation, and (3) metrics to measure performance such as accuracy, perplexity, BLEU, etc.",
+    "document_id": "5c93932c-7ced-4d09-9a54-5e01147683b3",
+    "chunk_id": "333888e2-983a-4fa7-a67f-87c246d00571",
+    "relevant_chunk_ids": [
+      "333888e2-983a-4fa7-a67f-87c246d00571"
+    ],
+    "query_type": "list",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 15,
+    "section": "🔹 One advanced insight (this is gold)",
+    "generated_at": "2026-04-19T05:37:00.882396+00:00"
+  },
+  {
+    "query": "What is the difference between query routing and query expansion?",
+    "ground_truth": "Query routing classifies the query type and directs it to the most appropriate retriever such as a vector database, SQL engine, web search, or calculator, while query expansion adds synonyms and related terms to the query to increase recall, which can reduce precision.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "35154164-f06f-45f2-aafb-ed4e0c97054c",
+    "relevant_chunk_ids": [
+      "35154164-f06f-45f2-aafb-ed4e0c97054c"
+    ],
+    "query_type": "comparison",
+    "difficulty": "medium",
+    "answer_type": "multi_hop",
+    "source": "synthetic",
+    "page": 12,
+    "section": "TejasH MistrY -AI Engineer",
+    "generated_at": "2026-04-19T05:37:20.393421+00:00"
+  },
+  {
+    "query": "Why does the '+1' term in the gradient expression for ResNet skip connections prevent gradients from vanishing?",
+    "ground_truth": "Because the gradient with respect to the input is ∂Loss/∂x = ∂Loss/∂output × (∂F/∂x + 1); the added '+1' guarantees a non‑zero component even if ∂F/∂x is zero, so gradients never completely vanish.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "3537e831-ce7f-4f4d-a357-e895786009d9",
+    "relevant_chunk_ids": [
+      "3537e831-ce7f-4f4d-a357-e895786009d9"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 22,
+    "section": "ResNet Skip Connections -Deep Dive",
+    "generated_at": "2026-04-19T05:37:25.546416+00:00"
+  },
+  {
+    "query": "Which vision encoder is recommended for strong alignment and what input resolution should be used with it?",
+    "ground_truth": "The recommended vision encoder for strong alignment is CLIP ViT‑L/14, and the standard input resolution to use with it is 336×336 (with optional dynamic resolutions up to 1344×336 tiles for documents).",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "379f1704-1967-4918-b1d3-517ddd947987",
+    "relevant_chunk_ids": [
+      "379f1704-1967-4918-b1d3-517ddd947987"
+    ],
+    "query_type": "list",
+    "difficulty": "medium",
+    "answer_type": "multi_hop",
+    "source": "synthetic",
+    "page": 37,
+    "section": "Architecture Decisions",
+    "generated_at": "2026-04-19T05:37:34.841187+00:00"
+  },
+  {
+    "query": "Why is selecting the right LLM important for production AI?",
+    "ground_truth": "Choosing the wrong LLM for a task is one of the most expensive mistakes in production AI.",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "38464917-08a9-48bb-8899-b6d273de05d0",
+    "relevant_chunk_ids": [
+      "38464917-08a9-48bb-8899-b6d273de05d0"
+    ],
+    "query_type": "explanation",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 5,
+    "section": "1.2 Criteria for Selecting the Right LLM",
+    "generated_at": "2026-04-19T05:37:39.256977+00:00"
+  },
+  {
+    "query": "What does the first human message in the conversations ask?",
+    "ground_truth": "It asks \"What objects are in this image and what are they doing?\"",
+    "document_id": "0f95c21d-375e-49f1-b985-c9ba144802f9",
+    "chunk_id": "38d35450-431d-4b28-835b-8346f1278b86",
+    "relevant_chunk_ids": [
+      "38d35450-431d-4b28-835b-8346f1278b86"
+    ],
+    "query_type": "definition",
+    "difficulty": "easy",
+    "answer_type": "extractive",
+    "source": "synthetic",
+    "page": 36,
+    "section": "Instruction Data Format (LLaVA-style)",
+    "generated_at": "2026-04-19T05:37:42.942036+00:00"
+  }
+]
