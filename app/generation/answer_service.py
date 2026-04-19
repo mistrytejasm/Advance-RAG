@@ -35,7 +35,20 @@ from app.config.settings import (
 )
 from app.utils.logger import logger
 
+# ── Phase 10: Monitoring ─────────────────────────────────────────────
+from monitoring import log_request, compute_cost, classify_error, check_and_alert
 
+# LangSmith tracing — enabled when LANGCHAIN_TRACING_V2=true in .env.
+# Gracefully degrades to a no-op if langsmith is not installed or key is missing.
+try:
+    from langsmith import traceable as _traceable
+except ImportError:
+    def _traceable(func=None, **_):   # pragma: no cover
+        """No-op fallback when langsmith is not installed."""
+        return func if func is not None else (lambda f: f)
+
+
+@_traceable(name="RAG Pipeline · generate_answer")
 def generate_answer(
     query: str,
     retrieval_result: dict,
@@ -194,6 +207,16 @@ def _build_response(
         error=error,
     )
 
+    # ── Phase 10: Write to monitoring request_logs + fire alerts ─────
+    _monitor_request(
+        query=query,
+        retrieval_result=retrieval_result,
+        llm_meta=llm_meta,
+        total_latency_ms=int(total_latency_ms),
+        is_grounded=is_grounded,
+        error=error,
+    )
+
     return response
 
 
@@ -259,4 +282,53 @@ def _sigmoid_confidence(chunks: list[dict], scale: float = 3.0) -> float:
     avg = mean(c.get("rerank_score", 0.0) for c in chunks)
     sigmoid = 1.0 / (1.0 + math.exp(-avg / scale))
     return round(sigmoid, 4)
+
+
+# ── Phase 10: Monitoring helper ───────────────────────────────────────
+
+def _monitor_request(
+    query: str,
+    retrieval_result: dict,
+    llm_meta: dict,
+    total_latency_ms: int,
+    is_grounded: bool,
+    error: str | None,
+) -> None:
+    """
+    Write one monitoring record to MongoDB `request_logs` and fire any
+    threshold alerts. Non-fatal — exceptions are caught and logged only.
+    """
+    try:
+        tokens   = llm_meta.get("total_tokens", 0)
+        model    = llm_meta.get("model", "")
+        cost_usd = compute_cost(tokens=tokens, model=model)
+
+        # Wrap error string in Exception so classify_error can pattern-match it
+        error_type = classify_error(Exception(error)) if error else None
+
+        qu = retrieval_result.get("query_understanding", {})
+
+        log_request(
+            query=query,
+            status="error" if error else "success",
+            total_latency_ms=total_latency_ms,
+            retrieval_latency_ms=int(retrieval_result.get("latency_ms", 0)),
+            generation_latency_ms=int(llm_meta.get("latency_ms", 0)),
+            tokens_used=tokens,
+            cost_usd=cost_usd,
+            model=model,
+            is_grounded=is_grounded,
+            cache_hit=False,           # cache layer not yet implemented
+            error_type=error_type,
+            query_type=qu.get("query_type", "unknown"),
+            document_id=retrieval_result.get("document_id"),
+            num_results=retrieval_result.get("total_results", 0),
+            confidence=retrieval_result.get("confidence", 0.0),
+        )
+
+        # Per-request latency alert (other alerts are computed in /metrics/summary)
+        check_and_alert(total_latency_ms=total_latency_ms)
+
+    except Exception as exc:
+        logger.warning(f"[AnswerService] Monitoring log failed (non-fatal): {exc}")
 

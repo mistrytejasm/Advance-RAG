@@ -68,3 +68,17 @@ MAX_CONTEXT_CHUNKS  = int(os.getenv("MAX_CONTEXT_CHUNKS", "5"))
 MIN_ANSWER_CONFIDENCE = float(os.getenv("MIN_ANSWER_CONFIDENCE", "0.0"))
 # The exact phrase the LLM should return when context doesn't have the answer.
 LLM_NO_ANSWER_PHRASE = "I don't have enough information in the provided context to answer this question."
+
+# --- Phase 10: Monitoring & Observability ---
+# LangSmith tracing — set LANGCHAIN_TRACING_V2=true in .env to enable.
+# Get your free API key at: https://smith.langchain.com/
+LANGCHAIN_API_KEY       = os.getenv("LANGCHAIN_API_KEY", "")
+LANGCHAIN_TRACING_V2    = os.getenv("LANGCHAIN_TRACING_V2", "false")
+LANGCHAIN_PROJECT       = os.getenv("LANGCHAIN_PROJECT", "advance-rag")
+
+# Expose to LangSmith SDK via standard env vars (SDK reads these automatically)
+import os as _os
+if LANGCHAIN_TRACING_V2.lower() == "true" and LANGCHAIN_API_KEY:
+    _os.environ.setdefault("LANGCHAIN_API_KEY",    LANGCHAIN_API_KEY)
+    _os.environ.setdefault("LANGCHAIN_TRACING_V2", LANGCHAIN_TRACING_V2)
+    _os.environ.setdefault("LANGCHAIN_PROJECT",    LANGCHAIN_PROJECT)
