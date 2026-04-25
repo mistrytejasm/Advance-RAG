@@ -171,6 +171,7 @@ Embeddings are what make semantic search possible in your RAG system.
 
 Retrieve the most relevant chunks for a user query and rank them properly before generation.
 
+https://github.com/ALucek/rag-reranking/blob/main/reranking.ipynb
 ### What this phase does
 
 * Embeds the user query
