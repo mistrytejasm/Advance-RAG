@@ -80,23 +80,69 @@ class Chunker:
                 current_pages.add(page)
                 continue
                 
-            # Step 2: Table Preservation (Fast-Pass)
+            # Step 2: Table Preservation with Slicing for Large Tables
             if content_type == "table":
-                _flush_buffer() # flush before table
+                _flush_buffer()
                 table_tokens = self.tokenizer.count_tokens(content)
-                final_chunks.append({
-                    "chunk_id": str(uuid.uuid4()),
-                    "document_id": document_id,
-                    "content": content,
-                    "content_type": "table",
-                    "page": page,
-                    "section": current_section,
-                    "token_count": table_tokens,
-                    "metadata": {
-                        "element_type": "TableItem",
-                        "created_at": datetime.now(timezone.utc).isoformat()
-                    }
-                })
+                lines = content.strip().split("\n")
+
+                # If table is large (> 400 tokens) and contains markdown rows, slice it cleanly
+                if table_tokens > 400 and len(lines) > 3:
+                    header_block = lines[0]
+                    separator = lines[1] if len(lines) > 1 and "---" in lines[1] else ""
+                    rows = lines[2:] if separator else lines[1:]
+
+                    chunk_rows = []
+                    for row in rows:
+                        chunk_rows.append(row)
+                        sub_table = f"{header_block}\n{separator}\n" + "\n".join(chunk_rows)
+                        if self.tokenizer.count_tokens(sub_table) >= 350:
+                            final_chunks.append({
+                                "chunk_id": str(uuid.uuid4()),
+                                "document_id": document_id,
+                                "content": sub_table.strip(),
+                                "content_type": "table",
+                                "page": page,
+                                "section": current_section,
+                                "token_count": self.tokenizer.count_tokens(sub_table),
+                                "metadata": {
+                                    "element_type": "TableItem",
+                                    "is_table_slice": True,
+                                    "created_at": datetime.now(timezone.utc).isoformat()
+                                }
+                            })
+                            chunk_rows = []
+
+                    if chunk_rows:
+                        sub_table = f"{header_block}\n{separator}\n" + "\n".join(chunk_rows)
+                        final_chunks.append({
+                            "chunk_id": str(uuid.uuid4()),
+                            "document_id": document_id,
+                            "content": sub_table.strip(),
+                            "content_type": "table",
+                            "page": page,
+                            "section": current_section,
+                            "token_count": self.tokenizer.count_tokens(sub_table),
+                            "metadata": {
+                                "element_type": "TableItem",
+                                "is_table_slice": True,
+                                "created_at": datetime.now(timezone.utc).isoformat()
+                            }
+                        })
+                else:
+                    final_chunks.append({
+                        "chunk_id": str(uuid.uuid4()),
+                        "document_id": document_id,
+                        "content": content,
+                        "content_type": "table",
+                        "page": page,
+                        "section": current_section,
+                        "token_count": table_tokens,
+                        "metadata": {
+                            "element_type": "TableItem",
+                            "created_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    })
                 continue
                 
             # Step 3: Image OCR Handling (Multimodal)

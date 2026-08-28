@@ -48,6 +48,114 @@ except ImportError:
         return func if func is not None else (lambda f: f)
 
 
+# ── In-Memory Query Cache (ISSUE-10 Fix) ──────────────────────────
+_QUERY_CACHE: dict[str, tuple[float, dict]] = {}
+CACHE_TTL_SECONDS = 300  # 5-minute TTL
+
+def _make_cache_key(query: str, document_id: str | None) -> str:
+    import hashlib
+    raw = f"{query.strip().lower()}::{document_id or ''}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+def get_cached_answer(query: str, document_id: str | None) -> dict | None:
+    key = _make_cache_key(query, document_id)
+    cached = _QUERY_CACHE.get(key)
+    if cached:
+        timestamp, data = cached
+        if time.time() - timestamp < CACHE_TTL_SECONDS:
+            return data
+        else:
+            _QUERY_CACHE.pop(key, None)
+    return None
+
+def set_cached_answer(query: str, document_id: str | None, response_data: dict) -> None:
+    key = _make_cache_key(query, document_id)
+    _QUERY_CACHE[key] = (time.time(), response_data)
+
+
+@_traceable(name="RAG Pipeline · generate_answer_async")
+async def generate_answer_async(
+    query: str,
+    retrieval_result: dict,
+) -> dict:
+    """
+    Asynchronous version of generate_answer with caching and AsyncGroq execution.
+    """
+    doc_id = retrieval_result.get("document_id")
+    cached = get_cached_answer(query, doc_id)
+    if cached:
+        logger.info(f"[AnswerService] (Async) Cache HIT for query='{query[:40]}'")
+        cached_copy = dict(cached)
+        cached_copy["cache_hit"] = True
+        return cached_copy
+
+    pipeline_start = time.time()
+    response_repo = ResponseRepository()
+    chunks = retrieval_result.get("results", [])
+
+    if not chunks:
+        logger.info("[AnswerService] No retrieved chunks — returning no-answer.")
+        return _build_response(
+            query=query,
+            answer=LLM_NO_ANSWER_PHRASE,
+            is_grounded=False,
+            citations=[],
+            confidence=0.0,
+            retrieval_result=retrieval_result,
+            llm_meta={},
+            pipeline_start=pipeline_start,
+            response_repo=response_repo,
+            error=None,
+        )
+
+    context_string, used_chunks = context_builder.build(
+        chunks=chunks,
+        max_tokens=MAX_CONTEXT_TOKENS,
+        max_chunks=MAX_CONTEXT_CHUNKS,
+    )
+
+    messages = build_messages(query=query, context=context_string)
+
+    try:
+        llm_meta = await llm_generator.generate_async(messages=messages)
+        raw_answer = llm_meta.pop("answer")
+    except LLMGenerationError as exc:
+        logger.error(f"[AnswerService] (Async) LLM generation failed: {exc}")
+        return _build_response(
+            query=query,
+            answer=LLM_NO_ANSWER_PHRASE,
+            is_grounded=False,
+            citations=[],
+            confidence=0.0,
+            retrieval_result=retrieval_result,
+            llm_meta={},
+            pipeline_start=pipeline_start,
+            response_repo=response_repo,
+            error=str(exc),
+        )
+
+    is_valid, is_grounded, validation_reason = validate_response(raw_answer)
+    final_answer = raw_answer if is_valid else LLM_NO_ANSWER_PHRASE
+    citations = build_citations(used_chunks) if is_grounded else []
+    confidence = _sigmoid_confidence(used_chunks)
+
+    resp = _build_response(
+        query=query,
+        answer=final_answer,
+        is_grounded=is_grounded,
+        citations=citations,
+        confidence=confidence,
+        retrieval_result=retrieval_result,
+        llm_meta=llm_meta,
+        pipeline_start=pipeline_start,
+        response_repo=response_repo,
+        error=None,
+    )
+    if is_grounded and is_valid:
+        set_cached_answer(query, doc_id, resp)
+    return resp
+
+
 @_traceable(name="RAG Pipeline · generate_answer")
 def generate_answer(
     query: str,
@@ -55,23 +163,15 @@ def generate_answer(
 ) -> dict:
     """
     Run the full answer-generation pipeline on top of retrieval results.
-
-    Args:
-        query:            Original user query string.
-        retrieval_result: The dict returned by run_retrieval_pipeline().
-                          Must contain: results (list), query_understanding (dict),
-                          latency_ms (float), document_id (str | None).
-
-    Returns:
-        dict with:
-            answer         (str)         — LLM-generated natural language answer
-            is_grounded    (bool)        — True if answer is drawn from context
-            citations      (list[dict])  — source references used in the answer
-            confidence     (float)       — avg rerank_score of context chunks (proxy)
-            retrieval      (dict)        — full retrieval pipeline output (pass-through)
-            llm_metadata   (dict)        — model, token counts, LLM latency
-            total_latency_ms (float)     — end-to-end wall clock
     """
+    doc_id = retrieval_result.get("document_id")
+    cached = get_cached_answer(query, doc_id)
+    if cached:
+        logger.info(f"[AnswerService] Cache HIT for query='{query[:40]}'")
+        cached_copy = dict(cached)
+        cached_copy["cache_hit"] = True
+        return cached_copy
+
     pipeline_start = time.time()
     response_repo = ResponseRepository()
     chunks = retrieval_result.get("results", [])

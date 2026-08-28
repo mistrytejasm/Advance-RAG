@@ -21,6 +21,7 @@ Our validator checks three structurally correct conditions:
      model failures (e.g., "OK." or a single word) — mark as invalid.
 """
 
+import re
 from app.config.settings import LLM_NO_ANSWER_PHRASE
 from app.utils.logger import logger
 
@@ -50,10 +51,20 @@ def validate_response(answer: str) -> tuple[bool, bool, str]:
         logger.warning("[ResponseValidator] LLM returned empty answer.")
         return False, False, "LLM returned an empty answer."
 
-    # Guard 2: No-answer sentinel — valid (intentional refusal), not grounded
-    if cleaned == LLM_NO_ANSWER_PHRASE:
+    # Guard 2: No-answer / Refusal pattern detection
+    lowered = cleaned.lower()
+    refusal_patterns = [
+        r"don't have enough information",
+        r"do not have enough information",
+        r"provided context does not contain",
+        r"context does not provide",
+        r"cannot be answered based on",
+        r"not mentioned in the (provided )?context",
+        r"no information provided about",
+    ]
+    if cleaned == LLM_NO_ANSWER_PHRASE or any(re.search(pat, lowered) for pat in refusal_patterns):
         logger.info(
-            "[ResponseValidator] LLM returned no-answer sentinel "
+            "[ResponseValidator] LLM returned no-answer / refusal "
             "(context insufficient)."
         )
         return True, False, "LLM determined context is insufficient."

@@ -66,7 +66,7 @@ async def delete_document(document_id: str):
     from app.database.document_repository import DocumentRepository
     from app.database.chunk_repository import ChunkRepository
     from app.database.log_repository import LogRepository
-    from app.database.pinecone_client import pinecone_client
+    from app.services.vector_store.pinecone_client import pinecone_store
     
     doc_repo = DocumentRepository()
     chunk_repo = ChunkRepository()
@@ -75,17 +75,11 @@ async def delete_document(document_id: str):
     # 1. Check if it exists
     chunks = chunk_repo.get_chunks_by_document_id(document_id)
     
-    # 2. Delete from Pinecone
-    chunk_ids = [c["chunk_id"] for c in chunks]
-    if chunk_ids:
-        # Pinecone max delete by IDs is usually 1000 at a time, we'll slice it if needed
-        # but for safety let's just delete them directly
-        for i in range(0, len(chunk_ids), 1000):
-            batch = chunk_ids[i:i+1000]
-            try:
-                pinecone_client.delete_vectors(ids=batch)
-            except Exception as e:
-                print(f"Failed to delete pinecone vectors for {document_id}: {e}")
+    # 2. Delete namespace cleanly from Pinecone
+    try:
+        pinecone_store.delete_namespace(namespace=document_id)
+    except Exception as e:
+        print(f"Failed to delete pinecone namespace for {document_id}: {e}")
 
     # 3. Delete from MongoDB
     chunk_repo.delete_chunks_by_document_id(document_id)

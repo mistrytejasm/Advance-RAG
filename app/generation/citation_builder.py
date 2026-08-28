@@ -37,25 +37,23 @@ def build_citations(used_chunks: list[dict]) -> list[dict]:
     if not used_chunks:
         return []
 
-    seen: set[str] = set()
+    seen_ids: set[str] = set()
     citations: list[dict] = []
 
-    # Sort by rerank_score descending before deduplication
-    # so the higher-scoring version of a duplicate wins.
+    # Sort by rerank_score descending
     ranked = sorted(used_chunks, key=lambda c: c.get("rerank_score", 0), reverse=True)
 
     for chunk in ranked:
-        # Deduplication key: same page + same section = same source location
-        page    = chunk.get("page")
-        section = (chunk.get("section") or "").strip()
-        dedup_key = f"{page}::{section.lower()}"
-
-        if dedup_key in seen:
+        cid = chunk.get("chunk_id")
+        if not cid or cid in seen_ids:
             continue
-        seen.add(dedup_key)
+        seen_ids.add(cid)
+
+        page = chunk.get("page")
+        section = (chunk.get("section") or "").strip()
 
         citations.append({
-            "chunk_id":     chunk.get("chunk_id", ""),
+            "chunk_id":     cid,
             "page":         page,
             "section":      section,
             "source":       chunk.get("source", ""),

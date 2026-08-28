@@ -12,41 +12,28 @@ from app.services.chunking.chunker import Chunker
 
 router = APIRouter(tags=["Document Management"])
 
-@router.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
-    start_time = time.time()
-    
-    # Repos and Services
+from starlette.concurrency import run_in_threadpool
+
+def _process_file_sync(file_info: dict, filename: str, document_id: str):
     doc_repo = DocumentRepository()
     chunk_repo = ChunkRepository()
     log_repo = LogRepository()
     chunker = Chunker()
+    start_time = time.time()
 
-    file_info = save_file(file)
-    document_id = file_info["file_id"]
     file_path = file_info["file_path"]
-
-    # 1) Register Document in MongoDB — use the same ID as the file and chunks
-    doc_repo.create_document(document_id=document_id, filename=file.filename, file_type="pdf")
+    doc_repo.create_document(document_id=document_id, filename=filename, file_type="pdf")
 
     try:
-        # Ingest & Parse into structural elements
         raw_elements = parse_document(file_path, document_id)
-        
-        # Save raw JSON locally (for backup/debugging)
         output_path = save_processed_output(document_id, raw_elements)
-        
-        # Production Chunking Engine
-        source_type = file.filename.split(".")[-1].lower() if "." in file.filename else "unknown"
+        source_type = filename.split(".")[-1].lower() if "." in filename else "unknown"
         semantic_chunks = chunker.chunk_document_elements(document_id, raw_elements, source=source_type)
-        
-        # 3) Store Semantic Chunks into MongoDB
+
         for chunk in semantic_chunks:
             chunk_repo.insert_chunk(chunk)
-            
+
         processing_time = round(time.time() - start_time, 2)
-        
-        # Log Success
         log_repo.insert_log({
             "stage": "chunking",
             "status": "success",
@@ -61,11 +48,8 @@ async def upload_document(file: UploadFile = File(...)):
             "semantic_chunks": len(semantic_chunks),
             "output_path": output_path
         }
-
     except Exception as e:
         processing_time = round(time.time() - start_time, 2)
-        
-        # Log Failure
         log_repo.insert_log({
             "stage": "chunking",
             "status": "error",
@@ -73,8 +57,20 @@ async def upload_document(file: UploadFile = File(...)):
             "processing_time": processing_time,
             "document_id": document_id
         })
-        
         logger.error(f"Document parsing failed for {document_id}: {e}")
+        raise e
+
+
+@router.post("/upload")
+async def upload_document(file: UploadFile = File(...)):
+    try:
+        # Offload file saving and parsing/chunking to worker threadpool to protect event loop
+        file_info = await run_in_threadpool(save_file, file)
+        document_id = file_info["file_id"]
+        
+        result = await run_in_threadpool(_process_file_sync, file_info, file.filename, document_id)
+        return result
+    except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Document parsing/chunking failed: {str(e)}"

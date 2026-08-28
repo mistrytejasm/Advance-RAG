@@ -52,7 +52,6 @@ class QueryRewriter:
     # ── AI/ML abbreviation expansion table ───────────────────────────────
     # Keys: lowercase abbreviation
     # Values: expanded form WITH original abbreviation appended for BM25 recall
-    # Only applied when the ENTIRE cleaned query is a single known token.
     ABBREVIATIONS: dict[str, str] = {
         "cnn":   "Convolutional Neural Network CNN",
         "rnn":   "Recurrent Neural Network RNN",
@@ -68,10 +67,23 @@ class QueryRewriter:
         "gpt":   "Generative Pre-trained Transformer GPT",
         "knn":   "K-Nearest Neighbors KNN",
         "svm":   "Support Vector Machine SVM",
+        "rag":   "Retrieval-Augmented Generation RAG",
+        "mlp":   "Multi-Layer Perceptron MLP",
+        "ddpm":  "Denoising Diffusion Probabilistic Models DDPM",
+        "dpo":   "Direct Preference Optimization DPO",
+        "lora":  "Low-Rank Adaptation LoRA",
+        "qlora": "Quantized Low-Rank Adaptation QLoRA",
+        "ann":   "Approximate Nearest Neighbors ANN",
+        "bm25":  "Best Matching 25 BM25",
+        "cot":   "Chain of Thought CoT",
+        "tot":   "Tree of Thoughts ToT",
+        "ocr":   "Optical Character Recognition OCR",
+        "ner":   "Named Entity Recognition NER",
+        "pos":   "Part-of-Speech POS",
+        "asr":   "Automatic Speech Recognition ASR",
+        "tts":   "Text to Speech TTS",
         "pca":   "Principal Component Analysis PCA",
-        "mlp":   "Multilayer Perceptron MLP",
         "dnn":   "Deep Neural Network DNN",
-        "rag":   "Retrieval Augmented Generation RAG",
         "vlm":   "Vision Language Model VLM",
         "vit":   "Vision Transformer ViT",
         "dqn":   "Deep Q-Network DQN",
@@ -107,8 +119,8 @@ class QueryRewriter:
         q = re.sub(r"\s+", " ", q).strip()
         q = re.sub(r"[?!.]+$", "", q).strip()
 
-        # Stage 2: Abbreviation expansion — ONLY for single-token queries
-        q = self._expand_if_single_abbreviation(q)
+        # Stage 2: Abbreviation expansion
+        q = self._expand_abbreviations(q)
 
         # Preserve original casing if no transformation was applied
         rewritten = q if q else original
@@ -118,6 +130,23 @@ class QueryRewriter:
             logger.debug(f"[QueryRewriter] '{original}' → '{rewritten}'")
 
         return rewritten, was_changed
+
+    def _expand_abbreviations(self, query: str) -> str:
+        """Expand single abbreviation or distinct acronym words."""
+        tokens = query.split()
+        if len(tokens) == 1 and tokens[0] in self.ABBREVIATIONS:
+            return self.ABBREVIATIONS[tokens[0]]
+
+        # In multi-token queries, expand standalone acronyms
+        expanded_tokens = []
+        for t in tokens:
+            cleaned_token = re.sub(r"[^\w]", "", t)
+            if cleaned_token in self.ABBREVIATIONS and len(cleaned_token) >= 2:
+                # Add full form while keeping original token
+                expanded_tokens.append(self.ABBREVIATIONS[cleaned_token])
+            else:
+                expanded_tokens.append(t)
+        return " ".join(expanded_tokens)
 
     def _expand_if_single_abbreviation(self, q: str) -> str:
         """

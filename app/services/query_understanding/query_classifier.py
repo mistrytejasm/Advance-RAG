@@ -141,7 +141,13 @@ class QueryClassifier:
                 if re.search(pattern, q):
                     return query_type
 
-        return QueryType.UNKNOWN
+        # Heuristic fallbacks for natural language queries
+        if any(w in q for w in ["which", "who", "where", "can", "explain", "describe", "detail"]):
+            return QueryType.FACTUAL
+        if any(w in q for w in ["steps", "guide", "guide to", "setup", "install", "run"]):
+            return QueryType.PROCEDURAL
+
+        return QueryType.FACTUAL if len(q.split()) > 3 else QueryType.UNKNOWN
 
 
 # Module-level singleton — instantiation is cheap (no model loading)
