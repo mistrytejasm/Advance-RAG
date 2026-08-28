@@ -84,6 +84,16 @@ class PineconeVectorStore:
         return self._index.fetch(ids=ids, namespace=namespace)
 
     # ------------------------------------------------------------------
+    def delete_vectors(self, ids: list[str], namespace: str = "") -> dict:
+        """Delete exact vectors by ID within a specific namespace."""
+        return self._index.delete(ids=ids, namespace=namespace)
+
+    # ------------------------------------------------------------------
+    def delete_namespace(self, namespace: str) -> dict:
+        """Delete all vectors inside a specific namespace."""
+        return self._index.delete(delete_all=True, namespace=namespace)
+
+    # ------------------------------------------------------------------
     def describe_index_stats(self) -> dict:
         """Global index statistics — total vector count, namespaces, etc."""
         return self._index.describe_index_stats()

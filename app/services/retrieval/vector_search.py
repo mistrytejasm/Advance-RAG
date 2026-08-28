@@ -51,14 +51,25 @@ class VectorSearch:
         # Build filter: merge caller's filter with document_id filter if both exist.
         # Note: document_id is already scoped by namespace, so metadata filter
         # is only needed for content_type / page / section filtering.
-        pinecone_filter = filter_metadata or None
+        pinecone_filter = {}
+        if filter_metadata:
+            for k, v in filter_metadata.items():
+                if v is not None:
+                    if isinstance(v, dict):
+                        pinecone_filter[k] = v
+                    elif k in ["content_type", "section", "source"]:
+                        pinecone_filter[k] = {"$eq": v}
+                    elif k == "page":
+                        pinecone_filter[k] = {"$eq": int(v)}
+                    else:
+                        pinecone_filter[k] = {"$eq": v}
 
         def _do_search():
             return pinecone_store.query_vectors(
                 vector=query_vector,
                 top_k=top_k,
                 namespace=namespace,
-                filter=pinecone_filter,
+                filter=pinecone_filter or None,
                 include_metadata=True,
             )
 

@@ -84,17 +84,20 @@ def run_retrieval_pipeline(
     # The rewritten query is ONLY used for BM25 (lexical search).
     query_vector = query_embedder.embed(qu.original_query)
 
-    # ── Steps 2a + 2b: Search Both Engines ───────────────────────────
+    # ── Steps 2a + 2b: Search Both Engines (with Pushdown Pre-filtering) ──
+    extracted_filters = qu.filters or {}
     vector_results = vector_search.search(
         query_vector=query_vector,
         document_id=document_id,
         top_k=top_k,
+        filter_metadata=extracted_filters,
     )
-    # BM25 uses the REWRITTEN query for cleaner lexical matching.
+    # BM25 uses the REWRITTEN query for cleaner lexical matching + pushdown filters
     bm25_results = bm25_search.search(
         query=qu.rewritten_query,
         document_id=document_id,
         top_k=BM25_TOP_K,
+        filter_metadata=extracted_filters,
     )
 
     logger.info(
@@ -108,65 +111,27 @@ def run_retrieval_pipeline(
                          round((time.time() - start_time) * 1000, 1))
         return _build_response(query, document_id, [], start_time, qu)
 
-    # ── Step 3: Normalize Scores → [0, 1] ────────────────────────────
-    normalize_scores(vector_results, score_key="score",      out_key="vector_score_norm")
-    normalize_scores(bm25_results,   score_key="bm25_score", out_key="bm25_score_norm")
-
-    # ── Step 4: Hybrid Score Fusion ───────────────────────────────────
-    # Use DYNAMIC weights from QueryRouter (Phase 6), not hardcoded constants.
+    # ── Step 3 & 4: Hybrid Score Fusion via Reciprocal Rank Fusion (RRF) ──
+    from app.utils.score_normalizer import reciprocal_rank_fusion
     v_weight = qu.vector_weight
     b_weight = qu.bm25_weight
 
-    bm25_lookup: dict[str, dict] = {r["chunk_id"]: r for r in bm25_results}
+    fused_list = reciprocal_rank_fusion(
+        vector_results=vector_results,
+        bm25_results=bm25_results,
+        vector_weight=v_weight,
+        bm25_weight=b_weight,
+        k=60,
+    )
+    logger.info(f"[Pipeline] Fused pool: {len(fused_list)} unique chunks via RRF")
 
-    fused: dict[str, dict] = {}
-    for r in vector_results:
-        cid    = r["chunk_id"]
-        v_norm = r.get("vector_score_norm", 0.0)
-        b_norm = bm25_lookup.get(cid, {}).get("bm25_score_norm", 0.0)
-        fused[cid] = {
-            **r,
-            "vector_score": r["score"],
-            "bm25_score":   bm25_lookup.get(cid, {}).get("bm25_score", 0.0),
-            "hybrid_score": round(v_weight * v_norm + b_weight * b_norm, 6),
-        }
-
-    # BM25-exclusive results (exact keyword hits not caught by vector search)
-    for r in bm25_results:
-        cid = r["chunk_id"]
-        if cid not in fused:
-            b_norm = r.get("bm25_score_norm", 0.0)
-            fused[cid] = {
-                "chunk_id":     cid,
-                "score":        0.0,
-                "vector_score": 0.0,
-                "bm25_score":   r.get("bm25_score", 0.0),
-                "hybrid_score": round(b_weight * b_norm, 6),
-                "metadata": {
-                    "content_preview": r.get("content", "")[:200],
-                    "page":            r.get("page", 1),
-                    "section":         r.get("section", ""),
-                    "content_type":    r.get("content_type", "text"),
-                    "source":          r.get("source", "pdf"),
-                },
-            }
-
-    fused_list = sorted(fused.values(), key=lambda x: x["hybrid_score"], reverse=True)
-    logger.info(f"[Pipeline] Fused pool: {len(fused_list)} unique chunks")
-
-    # ── Step 5: Filter ─────────────────────────────────────────────────
-    # Bridge hybrid_score → score key so MetadataFilter's threshold works.
-    for r in fused_list:
-        r["score"] = r["hybrid_score"]
-
-    # Pass EXTRACTED FILTERS from Phase 6 QU layer into MetadataFilter.
-    extracted = qu.filters
+    # ── Step 5: Post-filter Guard (Deduplication / fallback) ───────────
     filtered = metadata_filter.filter(
         results=fused_list,
-        min_score=min_score,
-        content_type=extracted.get("content_type"),
-        page=extracted.get("page"),
-        section=extracted.get("section"),
+        min_score=0.0,  # RRF scores are naturally bounded and ranked
+        content_type=extracted_filters.get("content_type"),
+        page=extracted_filters.get("page"),
+        section=extracted_filters.get("section"),
     )
 
     if not filtered:
@@ -176,7 +141,15 @@ def run_retrieval_pipeline(
                          round((time.time() - start_time) * 1000, 1))
         return _build_response(query, document_id, [], start_time, qu)
 
-    # ── Step 6: Rerank ────────────────────────────────────────────────
+    # ── Step 6a: Hydrate Full Content BEFORE Reranking (ISSUE-01 Fix) ──
+    candidate_ids = [r["chunk_id"] for r in filtered]
+    mongo_chunks = _fetch_mongo_content(chunk_repo, document_id, candidate_ids)
+    for r in filtered:
+        cid = r["chunk_id"]
+        meta = r.get("metadata", {})
+        r["content"] = mongo_chunks.get(cid, meta.get("content_preview", ""))
+
+    # ── Step 6b: Cross-Encoder Rerank (on Full Content) ───────────────
     reranked = reranker.rerank(
         query=qu.original_query,   # always rerank against the raw user query
         candidates=filtered,
@@ -191,16 +164,12 @@ def run_retrieval_pipeline(
                          round((time.time() - start_time) * 1000, 1))
         return _build_response(query, document_id, [], start_time, qu)
 
-    # ── Step 7a: Hydrate with Full Content from MongoDB ───────────────
-    chunk_ids   = [r["chunk_id"] for r in reranked]
-    mongo_chunks = _fetch_mongo_content(chunk_repo, document_id, chunk_ids)
-
-    # ── Step 7b: Build Final Result Objects ───────────────────────────
+    # ── Step 7: Build Final Result Objects ───────────────────────────
     final_results = []
     for r in reranked:
         cid  = r["chunk_id"]
         meta = r.get("metadata", {})
-        full_content = mongo_chunks.get(cid, meta.get("content_preview", ""))
+        full_content = r.get("content") or mongo_chunks.get(cid, meta.get("content_preview", ""))
 
         final_results.append({
             "chunk_id":     cid,

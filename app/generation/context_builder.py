@@ -80,19 +80,32 @@ class ContextBuilder:
                 if remaining > 50:  # Only truncate if meaningful space remains
                     chunk_text = self._truncate_chunk(chunk, remaining)
                     chunk_tokens = _count_tokens(chunk_text)
-                    context_parts.append(chunk_text)
                     used_chunks.append(chunk)
                     tokens_used += chunk_tokens
                 break
 
-            context_parts.append(chunk_text)
             used_chunks.append(chunk)
             tokens_used += chunk_tokens
 
+        # Reorder selected chunks to mitigate 'Lost in the Middle' attention decay
+        # Alternates placing top items at the start and end of the context
+        reordered_chunks: list[dict] = []
+        left = True
+        for chunk in used_chunks:
+            if left:
+                reordered_chunks.append(chunk)
+            else:
+                reordered_chunks.insert(0, chunk)
+            left = not left
+
+        context_parts = [
+            self._format_chunk(c, index=idx + 1)
+            for idx, c in enumerate(reordered_chunks)
+        ]
         context_string = "\n\n---\n\n".join(context_parts)
 
         logger.info(
-            f"[ContextBuilder] {len(used_chunks)} chunks selected, "
+            f"[ContextBuilder] {len(used_chunks)} chunks selected and reordered (Lost-in-the-Middle), "
             f"~{tokens_used} tokens used (budget: {max_tokens})"
         )
         return context_string, used_chunks

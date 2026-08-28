@@ -13,8 +13,9 @@ API key:    read from GROQ_API_KEY environment variable via settings.
 """
 
 import time
+import asyncio
 
-from groq import Groq, APIStatusError, APIConnectionError, RateLimitError
+from groq import Groq, AsyncGroq, APIStatusError, APIConnectionError, RateLimitError
 
 from app.config.settings import (
     GROQ_API_KEY,
@@ -33,7 +34,7 @@ class LLMGenerationError(Exception):
 
 
 class LLMGenerator:
-    """Groq-based LLM generator with retry and structured response."""
+    """Groq-based LLM generator with sync and async retry support."""
 
     def __init__(self) -> None:
         if not GROQ_API_KEY:
@@ -43,6 +44,86 @@ class LLMGenerator:
         self._client = Groq(
             api_key=GROQ_API_KEY,
             timeout=LLM_TIMEOUT_SECONDS,
+        )
+        self._async_client = AsyncGroq(
+            api_key=GROQ_API_KEY,
+            timeout=LLM_TIMEOUT_SECONDS,
+        )
+
+    async def generate_async(self, messages: list[dict]) -> dict:
+        """
+        Asynchronously call the Groq chat completion API with exponential backoff.
+        """
+        last_error: Exception | None = None
+
+        for attempt in range(1, LLM_MAX_RETRIES + 1):
+            try:
+                t0 = time.time()
+
+                response = await self._async_client.chat.completions.create(
+                    model=GROQ_MODEL,
+                    messages=messages,
+                    temperature=LLM_TEMPERATURE,
+                    max_tokens=LLM_MAX_OUTPUT_TOKENS,
+                )
+
+                latency_ms = round((time.time() - t0) * 1000, 1)
+                answer = response.choices[0].message.content.strip()
+                usage  = response.usage
+
+                logger.info(
+                    f"[LLMGenerator] (Async) Generated answer — "
+                    f"model={GROQ_MODEL} "
+                    f"tokens={usage.total_tokens} ({usage.prompt_tokens}in/"
+                    f"{usage.completion_tokens}out) "
+                    f"latency={latency_ms}ms"
+                )
+
+                return {
+                    "answer":        answer,
+                    "model":         GROQ_MODEL,
+                    "input_tokens":  usage.prompt_tokens,
+                    "output_tokens": usage.completion_tokens,
+                    "total_tokens":  usage.total_tokens,
+                    "latency_ms":    latency_ms,
+                }
+
+            except RateLimitError as exc:
+                last_error = exc
+                wait = LLM_RETRY_DELAY * (2 ** (attempt - 1))
+                logger.warning(
+                    f"[LLMGenerator] Rate-limited (attempt {attempt}/{LLM_MAX_RETRIES}). "
+                    f"Retrying in {wait:.1f}s…"
+                )
+                await asyncio.sleep(wait)
+
+            except APIStatusError as exc:
+                if exc.status_code >= 500:
+                    last_error = exc
+                    wait = LLM_RETRY_DELAY * attempt
+                    logger.warning(
+                        f"[LLMGenerator] Server error {exc.status_code} "
+                        f"(attempt {attempt}/{LLM_MAX_RETRIES}). "
+                        f"Retrying in {wait:.1f}s…"
+                    )
+                    await asyncio.sleep(wait)
+                else:
+                    raise LLMGenerationError(
+                        f"Groq API client error {exc.status_code}: {exc.message}"
+                    ) from exc
+
+            except APIConnectionError as exc:
+                last_error = exc
+                wait = LLM_RETRY_DELAY * attempt
+                logger.warning(
+                    f"[LLMGenerator] Connection error (attempt {attempt}/{LLM_MAX_RETRIES}). "
+                    f"Retrying in {wait:.1f}s…"
+                )
+                await asyncio.sleep(wait)
+
+        raise LLMGenerationError(
+            f"LLM generation failed after {LLM_MAX_RETRIES} attempts. "
+            f"Last error: {last_error}"
         )
 
     def generate(self, messages: list[dict]) -> dict:

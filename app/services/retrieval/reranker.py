@@ -70,12 +70,11 @@ class Reranker:
         model = self._model
 
         # Build (query, passage) pairs for the cross-encoder.
-        # Use content_preview from Pinecone metadata — it was capped at 200 chars
-        # during Phase 3, which is sufficient for the cross-encoder's 512-token limit.
-        pairs = [
-            (query, c.get("metadata", {}).get("content_preview", ""))
-            for c in candidates
-        ]
+        # Prefer full hydrated content if available; fallback to metadata.content_preview.
+        pairs = []
+        for c in candidates:
+            text = c.get("content") or c.get("metadata", {}).get("content_preview", "")
+            pairs.append((query, text))
 
         logger.info(f"[Reranker] Reranking {len(pairs)} candidates...")
 

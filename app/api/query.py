@@ -35,6 +35,10 @@ class QueryRequest(BaseModel):
         description="Scope search to a specific document namespace. "
                     "Leave empty to search across all documents.",
     )
+    tenant_id: str = Field(
+        default="default",
+        description="Tenant identifier for multi-tenant isolation.",
+    )
     top_k: int = Field(
         default=TOP_K,
         ge=1,
@@ -153,27 +157,15 @@ def query_documents(request: QueryRequest):
 
 
 @router.post("/answer", response_model=AnswerResponse)
-def answer_question(request: QueryRequest):
+async def answer_question(request: QueryRequest):
     """
     Full RAG Pipeline — Hybrid Retrieval → LLM Answer Generation.
-
-    Pipeline stages:
-      - Query Understanding (classify, rewrite, filter, route)
-      - Hybrid Search (vector + BM25 → normalize → fuse → filter → rerank)
-      - Answer Generation:
-        1. Context building (token-budgeted, sorted by rerank_score)
-        2. Prompt construction (grounding + citation instructions)
-        3. Groq LLM call with exponential-backoff retry
-        4. Response validation (empty, sentinel, length guards)
-        5. Citation building (deduplicated, sorted by relevance)
-        6. MongoDB response logging
-
-    Returns the LLM answer + citations + full retrieval details for
-    complete end-to-end observability.
     """
     try:
-        # Step 1: Run retrieval pipeline
-        retrieval_result = run_retrieval_pipeline(
+        # Step 1: Run retrieval pipeline (runs in worker threadpool)
+        from starlette.concurrency import run_in_threadpool
+        retrieval_result = await run_in_threadpool(
+            run_retrieval_pipeline,
             query=request.query,
             document_id=request.document_id,
             top_k=request.top_k,
@@ -181,8 +173,9 @@ def answer_question(request: QueryRequest):
             min_score=request.min_score,
         )
 
-        # Step 2: Generate answer
-        answer_result = generate_answer(
+        # Step 2: Generate answer asynchronously
+        from app.generation.answer_service import generate_answer_async
+        answer_result = await generate_answer_async(
             query=request.query,
             retrieval_result=retrieval_result,
         )

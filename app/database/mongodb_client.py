@@ -9,17 +9,39 @@ class MongoDBClient:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.client = MongoClient(MONGODB_URI)
-            cls._instance.db = cls._instance.client[DATABASE_NAME]
+            cls._instance._client = None
+            cls._instance._db = None
         return cls._instance
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = MongoClient(
+                MONGODB_URI,
+                maxPoolSize=50,
+                minPoolSize=5,
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=10000,
+                socketTimeoutMS=30000,
+            )
+            self._db = self._client[DATABASE_NAME]
+        return self._client
+
+    @property
+    def db(self):
+        if self._db is None:
+            _ = self.client
+        return self._db
 
     def get_collection(self, name: str):
         return self.db[name]
 
     def close(self):
-        if self._instance:
-            self._instance.client.close()
-            self._instance = None
+        if self._client:
+            self._client.close()
+            self._client = None
+            self._db = None
 
-# Create a single instance of MongoDBClient
-mongo_client = MongoDBClient()
+
+# Lazy singleton instance
+mongo_client = MongoDBClient()

@@ -34,38 +34,66 @@ class BM25Search:
         query: str,
         document_id: str | None = None,
         top_k: int = BM25_TOP_K,
+        filter_metadata: dict | None = None,
     ) -> list[dict]:
         """
         Execute an Atlas BM25 full-text search on the `chunks` collection.
 
         Args:
-            query:       The raw user query string (no prefix needed — BM25 is lexical).
-            document_id: Optional — scope results to a single document.
-                         If None, searches across ALL documents.
-            top_k:       Maximum number of BM25 candidates to return.
+            query:           The raw user query string.
+            document_id:     Optional — scope results to a single document.
+            top_k:           Maximum number of BM25 candidates to return.
+            filter_metadata: Optional dictionary of metadata filters.
 
         Returns:
             List of dicts:
                 {chunk_id, content, section, page, document_id, bm25_score}
         """
-        # ── Build the Atlas $search stage ────────────────────────────
+        # ── Build the Atlas $search stage with Field-Level Boosting ──
+        should_clauses = [
+            {
+                "text": {
+                    "query": query,
+                    "path": "section",
+                    "score": {"boost": {"value": 2.0}},  # Section matches boosted 2x
+                }
+            },
+            {
+                "text": {
+                    "query": query,
+                    "path": "content",
+                    "score": {"boost": {"value": 1.0}},
+                }
+            }
+        ]
+
+        filter_clauses = []
+        if document_id:
+            filter_clauses.append({"equals": {"value": document_id, "path": "document_id"}})
+
+        if filter_metadata:
+            if "content_type" in filter_metadata and filter_metadata["content_type"]:
+                filter_clauses.append({"text": {"query": filter_metadata["content_type"], "path": "content_type"}})
+            if "section" in filter_metadata and filter_metadata["section"]:
+                filter_clauses.append({"text": {"query": filter_metadata["section"], "path": "section"}})
+            if "page" in filter_metadata and filter_metadata["page"] is not None:
+                filter_clauses.append({"equals": {"value": int(filter_metadata["page"]), "path": "page"}})
+
+        search_compound = {
+            "should": should_clauses,
+            "minimumShouldMatch": 1
+        }
+        if filter_clauses:
+            search_compound["filter"] = filter_clauses
+
         search_stage = {
             "$search": {
                 "index": HYBRID_INDEX_NAME,
-                "text": {
-                    "query": query,
-                    "path": ["content", "section"],   # search both fields
-                },
+                "compound": search_compound,
             }
         }
 
-        # ── Optional document-level filter ────────────────────────────
-        # We apply $match AFTER $search to allow Atlas to score all docs,
-        # then filter to the target document_id namespace.
         pipeline = [search_stage]
-
-        if document_id:
-            pipeline.append({"$match": {"document_id": document_id}})
 
         # ── Limit and project only what we need ───────────────────────
         pipeline += [
